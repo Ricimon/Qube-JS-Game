@@ -209,3 +209,18 @@ Declare_Any_Class( "Text_Line", // Draws a rectangle textured with images of ASC
         gl.bufferData( gl.ARRAY_BUFFER, flatten(this.texture_coords), gl.STATIC_DRAW );
       }
   }, Shape )
+  
+Declare_Any_Class( "Cube",
+  { 'populate': function()
+	  {
+		current_plane = mat4();
+        Square.prototype.insert_transformed_copy_into( this, [], mult(current_plane, translation(0, 0, 1)) );
+        Square.prototype.insert_transformed_copy_into( this, [], mult(mult(current_plane, translation(0, 0, -1)) , rotation(180,0,1,0)) );
+        current_plane = rotation(90, 0, 1, 0);
+        Square.prototype.insert_transformed_copy_into( this, [], mult(current_plane, translation(0, 0, 1)) );
+        Square.prototype.insert_transformed_copy_into( this, [], mult(mult(current_plane, translation(0, 0, -1)) , rotation(180,0,1,0)) );
+        current_plane = rotation(90, 1, 0, 0);
+        Square.prototype.insert_transformed_copy_into( this, [], mult(current_plane, translation(0, 0, 1)) );
+        Square.prototype.insert_transformed_copy_into( this, [], mult(mult(current_plane, translation(0, 0, -1)) , rotation(180,0,1,0)) );
+	  }
+  }, Shape )

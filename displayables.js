@@ -9,8 +9,8 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - A displayable object that 
       },
     'init_keys': function( controls )
       { controls.add( "t",    this, function() { this.visible ^= 1;                                                                                                             } );
-        controls.add( "i",    this, function() { this.start_index = ( this.start_index + 1 ) % Object.keys( this.string_map ).length;                                           } );
-        controls.add( "k", 	  this, function() { this.start_index = ( this.start_index - 1   + Object.keys( this.string_map ).length ) % Object.keys( this.string_map ).length; } );
+        controls.add( "Up",    this, function() { this.start_index = ( this.start_index + 1 ) % Object.keys( this.string_map ).length;                                           } );
+        controls.add( "Down", 	  this, function() { this.start_index = ( this.start_index - 1   + Object.keys( this.string_map ).length ) % Object.keys( this.string_map ).length; } );
         this.controls = controls;
       },
     'update_strings': function( debug_screen_object )   // Strings that this displayable object (Debug_Screen) contributes to the UI:
@@ -23,7 +23,7 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - A displayable object that 
         shaders_in_use["Default"].activate();
         gl.uniform4fv( g_addrs.shapeColor_loc, Color( .8, .8, .8, 1 ) );
 
-        var font_scale = scale( .015, .04, 1 ),
+        var font_scale = scale( .02, .04, 1 ),
             model_transform = mult( translation( -.95, -.9, 0 ), font_scale ),
             strings = Object.keys( this.string_map );
 
@@ -49,7 +49,7 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - A displayable object that 
 Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Manager can manage.  Adds first-person style camera matrix controls to the canvas
   { 'construct': function( context )
       { // 1st parameter below is our starting camera matrix.  2nd is the projection:  The matrix that determines how depth is treated.  It projects 3D points onto a plane.
-        context.shared_scratchpad.graphics_state = new Graphics_State( translation(0, 0, -25), perspective(45, canvas.width/canvas.height, .1, 1000), 0 );
+        context.shared_scratchpad.graphics_state = new Graphics_State( translation(0, 0, -25), ortho( -10, 10, -10/(canvas.width/canvas.height), 10/(canvas.width/canvas.height), 0.1, 1000), 0 );
         this.define_data_members( { graphics_state: context.shared_scratchpad.graphics_state, thrust: vec3(), origin: vec3( 0, 0, 0 ), looking: false } );	// N and movement were added for movement control
 
         //*** Mouse controls: *** For Debugging Purposes
@@ -120,6 +120,7 @@ Declare_Any_Class( "Animation",  // Displayable object that our class Canvas_Man
         shapes_in_use.bad_tetrahedron = new Tetrahedron( false );      // For example we'll only create one "cube" blueprint in the GPU, but we'll re-use
         shapes_in_use.tetrahedron     = new Tetrahedron( true );      // it many times per call to display to get multiple cubes in the scene.
         shapes_in_use.windmill        = new Windmill( 10 );
+		shapes_in_use.cube			  = new Cube();
         
         shapes_in_use.triangle_flat        = Triangle.prototype.auto_flat_shaded_version();
         shapes_in_use.strip_flat           = Square.prototype.auto_flat_shaded_version();
@@ -148,14 +149,14 @@ Declare_Any_Class( "Animation",  // Displayable object that our class Canvas_Man
         graphics_state.lights = [];                    // First clear the light list each frame so we can replace & update lights.
 
         var t = graphics_state.animation_time/1000, light_orbit = [ Math.cos(t), Math.sin(t) ];
-        //graphics_state.lights.push( new Light( vec4( 0, -13, 0, 1 ), Color( 1, .2, .1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
+        graphics_state.lights.push( new Light( vec4( 0, 3, 2, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
 
         // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.
         // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
         var redSun 			  = new Material( Color( 1    , 0.2  , 0.1  , 1 ), .9 ,  0,  0, 1  ),	 // Omit the final (string) parameter if you want no texture
 			greyPlanet 		  = new Material( Color( 0.827, 0.827, 0.827, 1 ), .15, .7, .8, 30 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
 			blueGreenPlanet   = new Material( Color( 0.051, 0.8  , 0.729, 1 ), .15, .7, .5, 80 ),
-			lightBluePlanet   = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7, .9, 10 ),
+			lightBluePlanet   = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
 			brownOrangePlanet = new Material( Color( 0.6  , 0.251, 0.137, 1 ), .15, .7, .3, 90 ),
 			lightRedMoon	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, .4, 70 ),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
@@ -164,6 +165,6 @@ Declare_Any_Class( "Animation",  // Displayable object that our class Canvas_Man
         Code for objects in world
         **********************************/                                     
 
-		shapes_in_use.strip.draw(graphics_state, model_transform, redSun);
+		shapes_in_use.cube.draw(graphics_state, mult( model_transform, scale( 3, 1, 1 ) ), lightBluePlanet);
       }
   }, Animation );
