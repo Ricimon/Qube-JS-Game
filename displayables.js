@@ -9,8 +9,8 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - A displayable object that 
       },
     'init_keys': function( controls )
       { controls.add( "t",    this, function() { this.visible ^= 1;                                                                                                             } );
-        controls.add( "Up",    this, function() { this.start_index = ( this.start_index + 1 ) % Object.keys( this.string_map ).length;                                           } );
-        controls.add( "Down", 	  this, function() { this.start_index = ( this.start_index - 1   + Object.keys( this.string_map ).length ) % Object.keys( this.string_map ).length; } );
+        controls.add( "up",   this, function() { this.start_index = ( this.start_index + 1 ) % Object.keys( this.string_map ).length;                                           } );
+        controls.add( "down", this, function() { this.start_index = ( this.start_index - 1   + Object.keys( this.string_map ).length ) % Object.keys( this.string_map ).length; } );
         this.controls = controls;
       },
     'update_strings': function( debug_screen_object )   // Strings that this displayable object (Debug_Screen) contributes to the UI:
@@ -50,9 +50,9 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
   { 'construct': function( context )
       { // 1st parameter below is our starting camera matrix.  2nd is the projection:  The matrix that determines how depth is treated.  It projects 3D points onto a plane.
         context.shared_scratchpad.graphics_state = new Graphics_State( translation(0, 0, -25), ortho( -10, 10, -10/(canvas.width/canvas.height), 10/(canvas.width/canvas.height), 0.1, 1000), 0 );
-        this.define_data_members( { graphics_state: context.shared_scratchpad.graphics_state, thrust: vec3(), origin: vec3( 0, 0, 0 ), looking: false } );	// N and movement were added for movement control
+        this.define_data_members( { graphics_state: context.shared_scratchpad.graphics_state, thrust: vec3(), origin: vec3( 0, 5, 0 ), looking: false } );
 
-        //*** Mouse controls: *** For Debugging Purposes
+        // *** Mouse controls: *** For Debugging Purposes
         this.mouse = { "from_center": vec2() };
         var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };   // Measure mouse steering, for rotating the flyaround camera.
         canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
@@ -153,18 +153,19 @@ Declare_Any_Class( "Animation",  // Displayable object that our class Canvas_Man
 
         // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.
         // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
-        var redSun 			  = new Material( Color( 1    , 0.2  , 0.1  , 1 ), .9 ,  0,  0, 1  ),	 // Omit the final (string) parameter if you want no texture
+        var emissiveRed		  = new Material( Color( 1    , 0.2  , 0.1  , 1 ), .9 ,  0,  0, 1  ),	 // Omit the final (string) parameter if you want no texture
 			greyPlanet 		  = new Material( Color( 0.827, 0.827, 0.827, 1 ), .15, .7, .8, 30 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
-			blueGreenPlanet   = new Material( Color( 0.051, 0.8  , 0.729, 1 ), .15, .7, .5, 80 ),
-			lightBluePlanet   = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
-			brownOrangePlanet = new Material( Color( 0.6  , 0.251, 0.137, 1 ), .15, .7, .3, 90 ),
-			lightRedMoon	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, .4, 70 ),
+			blueGreen	      = new Material( Color( 0.051, 0.8  , 0.729, 1 ), .15, .7, .5, 80 ),
+			lightBlue	      = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
+			brownOrange       = new Material( Color( 0.6  , 0.251, 0.137, 1 ), .15, .7, .3, 90 ),
+			lightRed      	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, .4, 70 ),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
 
         /**********************************
         Code for objects in world
         **********************************/                                     
 
-		shapes_in_use.cube.draw(graphics_state, mult( model_transform, scale( 3, 1, 1 ) ), lightBluePlanet);
+		shapes_in_use.cube.draw(graphics_state, mult( model_transform, scale( 3, 1, 1 ) ), lightBlue);
+		
       }
   }, Animation );

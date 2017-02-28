@@ -44,7 +44,7 @@ Declare_Any_Class( "Phong_or_Gouraud_Shader",
           // to the next phase.  The purpose of this program is to calculate the final resting place of vertices in screen coordinates; each of them starts out in local object coordinates.
 
           precision mediump float;
-          const int N_LIGHTS = 1;               // Be sure to keep this line up to date as you add more lights
+          const int N_LIGHTS = 2;               // Be sure to keep this line up to date as you add more lights
 
           attribute vec4 vColor;
           attribute vec3 vPosition, vNormal;
@@ -115,7 +115,7 @@ Declare_Any_Class( "Phong_or_Gouraud_Shader",
 
           precision mediump float;
 
-          const int N_LIGHTS = 1;
+          const int N_LIGHTS = 2;
 
           uniform vec4 lightColor[N_LIGHTS], shapeColor;
           varying vec3 L[N_LIGHTS], H[N_LIGHTS];
@@ -153,7 +153,7 @@ Declare_Any_Class( "Phong_or_Gouraud_Shader",
       }
   }, Shader );
 
-// Not used for Assignment 2
+// Not used
 Declare_Any_Class( "Funny_Shader",                    // This one borrows almost everything from Phong_or_Gouraud_Shader.
   { 'fragment_glsl_code_string': function()           // ********* FRAGMENT SHADER *********
       { return `

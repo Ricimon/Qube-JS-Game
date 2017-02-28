@@ -27,7 +27,7 @@ Declare_Any_Class( "Shape",
         this.populate.apply( this, arguments ); // Immediately fill in appropriate vertices via polymorphism, calling whichever sub-class's populate().
       },
     'insert_transformed_copy_into': function( recipient, args, points_transform = mat4() )
-      { var temp_shape = new ( window[ this.class_name ] )( ...args );  // If you try to bypass making a temporary shape and instead directLy insert new data into
+      { var temp_shape = new ( window[ this.class_name ] )( ...args );  // If you try to bypass making a temporary shape and instead directly insert new data into
                                                                         // the recipient, you'll run into trouble when the recursion tree stops at different depths.
         for( var i = 0; i < temp_shape.indices.length; i++ ) recipient.indices.push( temp_shape.indices[i] + recipient.positions.length );
 

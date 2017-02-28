@@ -8,6 +8,10 @@ index.html - The web page document containing the canvas (drawing surface), that
 <script type="text/javascript" src="displayables.js"  ></script>
 <script type="text/javascript" src="shapes.js"        ></script>
 <script type="text/javascript" src="shaders.js"       ></script>
+<script type="text/javascript" src="surfaces-of-revolution.js"></script>
+<script type="text/javascript" src="subdivision-sphere.js"    ></script>
+<script type="text/javascript" src="surfaces-tester.js"       ></script>
+<script type="text/javascript" src="bee-scene.js"             ></script>
 <script type="text/javascript"> "use strict"  
   window.onload = function init()           // ********************* OUR WHOLE PROGRAM'S ENTRY POINT ********************* 
     {	
@@ -20,9 +24,11 @@ index.html - The web page document containing the canvas (drawing surface), that
       texture_filenames_to_load.push( "text.png" );                             // Put all our texture images in the GPU.
       for( var i = 0; i < texture_filenames_to_load.length; i++ ) textures_in_use[ texture_filenames_to_load[i] ] = ( new Texture( texture_filenames_to_load[i], false ) );
       
-      main_canvas.register_display_object( new Debug_Screen( main_canvas ) );  // We instantiate some of our custom "Animation" subclasses and register these displayable
-      main_canvas.register_display_object( new Animation   ( main_canvas ) );  // objects to their master "Canvas_Manager" object -- which OpenGL calls upon every time a
-      main_canvas.register_display_object( new Camera      ( main_canvas ) ); 	// draw / keyboard / mouse event happens.
+      main_canvas.register_display_object( new Debug_Screen     ( main_canvas ) );  // We instantiate some of our custom "Animation" subclasses and register these displayable
+      main_canvas.register_display_object( new Animation   		( main_canvas ) );  // objects to their master "Canvas_Manager" object -- which OpenGL calls upon every time a
+      main_canvas.register_display_object( new Camera      		( main_canvas ) ); 	// draw / keyboard / mouse event happens.
+	  main_canvas.register_display_object( new Surfaces_Tester  ( main_canvas ) );
+      main_canvas.register_display_object( new Bee_Scene        ( main_canvas ) );
       main_canvas.render();
     }
 

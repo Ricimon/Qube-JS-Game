@@ -97,7 +97,7 @@ Declare_Any_Class( "Windmill",          // As our shapes get more complicated, w
   }, Shape )
 
 // *********** SPHERE ***********
-Declare_Any_Class( "Sphere",	// Draws a sphere using recursive subdivision. A parameter is passed in to specify the subdivision resolution
+Declare_Any_Class( "My_Sphere",	// Draws a sphere using recursive subdivision. A parameter is passed in to specify the subdivision resolution
   { 'populate': function( numTimesToSubdivide )	// The sphere will be made out of triangles (but not a compound shape)
 	  { 		
 		// Begin with vertices of a tetrahedron
@@ -210,7 +210,7 @@ Declare_Any_Class( "Text_Line", // Draws a rectangle textured with images of ASC
       }
   }, Shape )
   
-Declare_Any_Class( "Cube",
+Declare_Any_Class( "My_Cube",
   { 'populate': function()
 	  {
 		current_plane = mat4();
