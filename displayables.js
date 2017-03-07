@@ -113,7 +113,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { asignedPickColors: false } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0 } );
 		
 		// Unused shapes are commented out
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
@@ -128,8 +128,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         shapes_in_use.bad_tetrahedron_flat = Tetrahedron.prototype.auto_flat_shaded_version( false );
         shapes_in_use.tetrahedron_flat          = Tetrahedron.prototype.auto_flat_shaded_version( true );
         shapes_in_use.windmill_flat             = Windmill.prototype.auto_flat_shaded_version( 10 );
-
-        var picker = new Picker( canvas );
+		
+        // this.picker = new Picker( canvas );
         // picker.configure();
       },
     'init_keys': function( controls )   // init_keys():  Define any extra keyboard shortcuts here
@@ -137,6 +137,18 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+g", this, function() { this.shared_scratchpad.graphics_state.gouraud       ^= 1; } );   // Make the keyboard toggle some
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
+		
+		var picker = this.picker;
+		
+		this.mouse = { "from_center": vec2() };
+		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
+        //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
+        canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;    
+			var readout = new Uint8Array( 1 * 1 * 4 );
+			gl.bindFramebuffer( gl.FRAMEBUFFER, picker.framebuffer );
+			gl.readPixels( mouse_position[0], mouse_position[1], 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
+			gl.bindFramebuffer( gl.FRAMEBUFFER, null );
+			console.log(readout); } } ) (this), false );
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
@@ -144,7 +156,22 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         // user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
         // user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
-	'draw_rectangle': function( model_transform, rectLength, rectDirection )
+	'reset_scene': function()
+	  {
+		this.assignedPickColors = false;
+	  },
+	'check_color_repeat': function( r, g, b )
+	  {
+		if ( r === 0 && g === 0 && b === 0 )	// can't be background color
+			return true;
+		shapes_in_scene.forEach( function(entry) {
+			if (entry[0] === r && entry[1] === g && entry[2] === b)
+				return true;
+			else
+				return false;
+		}, this );
+	  },
+	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame )
 	  {
 		var graphics_state  = this.shared_scratchpad.graphics_state;
 		
@@ -152,7 +179,33 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		
 		for (var i = 0; i < rectLength; i++)
 		{
-			shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+			if (pickFrame)
+			{
+				var r, g, b;
+				if (!this.assignedPickColors) {
+					do
+					{
+						r = getRandomIntInclusive(0, 255) / 255;
+						g = getRandomIntInclusive(0, 255) / 255;
+						b = getRandomIntInclusive(0, 255) / 255;
+					}
+					while ( this.check_color_repeat( r, g, b ) )	// make sure randomly generated color is not already being used
+					shapes_in_scene.push( vec3(r,g,b) );
+				}
+				else {
+					var currentColor = shapes_in_scene[this.objIndex];
+					r = currentColor[0];
+					g = currentColor[1];
+					b = currentColor[2];
+				}
+				
+				var objColor = new Material( Color( r, g, b ), 1, 0, 0, 1 );
+				shapes_in_use.cube.draw( graphics_state, model_transform, objColor );
+				this.objIndex++;
+			}
+			else
+				shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+			
 			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
 		}
 		return model_transform;
@@ -186,12 +239,15 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         Code for objects in world
         **********************************/                                     
 
-		model_transform = this.draw_rectangle( model_transform, 3, vec3(1,0,0) );
-		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0) );
+		model_transform = this.draw_rectangle( model_transform, 3, vec3(1,0,0), pickFrame );
+		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
 		// shapes_in_scene.
 
 		// model_transform = mult( translation( 2, 0, 0 ), model_transform );
 		// shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
+		
+		this.assignedPickColors = true;
+		this.objIndex = 0;
 		
       }
   }, Animation );

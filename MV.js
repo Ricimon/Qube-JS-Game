@@ -685,3 +685,10 @@ function hermite_curve_point( a, b, da, db, t, epsilon = .0001 )      // Static 
       return { position: vec3( point1 ), normal: vec3( subtract( point2, point1 ) ) };
     }
 	
+	
+function getRandomIntInclusive(min, max) 
+{
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}

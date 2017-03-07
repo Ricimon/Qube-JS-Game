@@ -38,6 +38,11 @@ Declare_Any_Class( "Picker",
 		gl.bindFramebuffer( gl.FRAMEBUFFER, this.framebuffer );
 		gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.pickTexture, 0 );
 		gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer );
+		
+		// Check for completeness
+		var status = gl.checkFramebufferStatus( gl.FRAMEBUFFER );
+		if (status != gl.FRAMEBUFFER_COMPLETE)
+			alert('Frame Buffer Not Complete');
 
 		// 4. Clean up
 		gl.bindTexture( gl.TEXTURE_2D, null );
