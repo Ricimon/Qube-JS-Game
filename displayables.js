@@ -113,6 +113,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad    = context.shared_scratchpad;
+        this.define_data_members( { asignedPickColors: false } );
 		
 		// Unused shapes are commented out
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
@@ -143,7 +144,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         //user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
         //user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
-    'display': function(time)
+    'display': function(time, pickFrame)
       {
         var graphics_state  = this.shared_scratchpad.graphics_state,
             model_transform = mat4();             // We have to reset model_transform every frame, so that as each begins, our basis starts as the identity.
@@ -153,7 +154,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         graphics_state.lights = [];                    // First clear the light list each frame so we can replace & update lights.
 
         var t = graphics_state.animation_time/1000, light_orbit = [ Math.cos(t), Math.sin(t) ];
-        graphics_state.lights.push( new Light( vec4( 0, 3, 2, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
+        if (!pickFrame) 
+        {
+          graphics_state.lights.push( new Light( vec4( 0, 3, 2, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
+        }
 
         // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.
         // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
@@ -169,7 +173,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         Code for objects in world
         **********************************/                                     
 
-		shapes_in_use.cube.draw(graphics_state, mult( model_transform, scale( 3, 1, 1 ) ), lightBlue);
+		shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
+    // shapes_in_scene.
+
+    model_transform = mult( translation( 2, 0, 0 ), model_transform );
+    shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
 		
       }
   }, Animation );
