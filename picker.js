@@ -1,19 +1,19 @@
-Declare_Any_Class("Picker",
+Declare_Any_Class( "Picker",
 {
 	'construct'		: function( canvas )
 	{
 		this.define_data_members( {
-			plist: [],
-			canvas: canvas,
-			pickTexture: null,
-			framebuffer: null,
-			renderbuffer: null,
+			plist					: [],
+			canvas					: canvas,
+			pickTexture				: null,
+			framebuffer 			: null,
+			renderbuffer 			: null,
 
-			processHitsCallback: null,
-			addHitCallback: null,
-			removeHitCallback: null,
-			hitPropertyCallback: null,
-			moveCallback: null
+			processHitsCallback 	: null,
+			addHitCallback 			: null,
+			removeHitCallback 		: null,
+			hitPropertyCallback 	: null,
+			moveCallback 			: null
 		} ); 
 
 		this.configure();
@@ -29,22 +29,22 @@ Declare_Any_Class("Picker",
 		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null );
 
 		// 2. Init Render Buffer
-		this.renderbuffer = gl.createRenderBuffer();
+		this.renderbuffer = gl.createRenderbuffer();
 		gl.bindRenderbuffer( gl.RENDERBUFFER, this.renderbuffer );
 		gl.renderbufferStorage( gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height );
 
 		// 3. Init Frame Buffer
-		this.framebuffer = gl.createFrameBuffer();
+		this.framebuffer = gl.createFramebuffer();
 		gl.bindFramebuffer( gl.FRAMEBUFFER, this.framebuffer );
 		gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.pickTexture, 0 );
-		gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT1, gl.RENDERBUFFER, this.renderbuffer );
+		gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer );
 
 		// 4. Clean up
 		gl.bindTexture( gl.TEXTURE_2D, null );
 		gl.bindRenderbuffer( gl.RENDERBUFFER, null );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, null );
 	},
-	'update'		:function()
+	'update'		: function()
 	{
 		var width = this.canvas.width;
 		var height = this.canvas.height;
@@ -75,7 +75,31 @@ Declare_Any_Class("Picker",
 		if ( this.hitPropertyCallback == undefined ) { alert( 'The picker needs an object property to perform the comparison' ); return; }
 
 		// TODO
-		// for ( var i = 0)
+		for ( var i = 0; i < shapes_in_use.length; i++ ) 
+		{
+			var ob = shapes_in_use[i];
+			var property = this.hitPropertyCallback(ob);
+
+			if ( property == undefined ) continue;
+
+			if (this._compare( readout, property ) )
+			{
+				var index = this.plist.indexOf(ob);
+				if ( index != -1 )
+				{
+					this.plist.splice( index, 1 );
+					if ( this.removeHitCallback ) this.removeHitCallback( ob );
+				}
+				else
+				{
+					this.plist.push(ob);
+					if ( this.addHitCallback ) this.addHitCallback( ob );
+				}
+			}
+			found = true;
+		}
+		draw();
+		return found;
 	},
 	'stop'			: function()
 	{
@@ -84,4 +108,4 @@ Declare_Any_Class("Picker",
 		}
 		this.plist = [];
 	}
-});
+}, Animation );

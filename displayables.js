@@ -110,7 +110,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
       }
   }, Animation );
 
-Declare_Any_Class( "Animation",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
+Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad    = context.shared_scratchpad;
 		
@@ -127,6 +127,9 @@ Declare_Any_Class( "Animation",  // Displayable object that our class Canvas_Man
         shapes_in_use.bad_tetrahedron_flat = Tetrahedron.prototype.auto_flat_shaded_version( false );
         shapes_in_use.tetrahedron_flat          = Tetrahedron.prototype.auto_flat_shaded_version( true );
         shapes_in_use.windmill_flat             = Windmill.prototype.auto_flat_shaded_version( 10 );
+
+        var picker = new Picker( canvas );
+        // picker.configure();
       },
     'init_keys': function( controls )   // init_keys():  Define any extra keyboard shortcuts here
       {

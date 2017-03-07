@@ -28,9 +28,9 @@ index.html - The web page document containing the canvas (drawing surface), that
       for( var i = 0; i < texture_filenames_to_load.length; i++ ) textures_in_use[ texture_filenames_to_load[i] ] = ( new Texture( texture_filenames_to_load[i], false ) );
       
       main_canvas.register_display_object( new Debug_Screen     ( main_canvas ) );  // We instantiate some of our custom "Animation" subclasses and register these displayable
-      main_canvas.register_display_object( new Animation   		( main_canvas ) );  // objects to their master "Canvas_Manager" object -- which OpenGL calls upon every time a
+      main_canvas.register_display_object( new Game_Scene   		( main_canvas ) );  // objects to their master "Canvas_Manager" object -- which OpenGL calls upon every time a
       main_canvas.register_display_object( new Camera      		( main_canvas ) ); 	// draw / keyboard / mouse event happens.
-	  main_canvas.register_display_object( new Surfaces_Tester  ( main_canvas ) );
+	 main_canvas.register_display_object( new Surfaces_Tester  ( main_canvas ) );
       main_canvas.register_display_object( new Bee_Scene        ( main_canvas ) );
       main_canvas.render();
     }
