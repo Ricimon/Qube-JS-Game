@@ -112,7 +112,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
 
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
-      { this.shared_scratchpad    = context.shared_scratchpad;
+      { this.shared_scratchpad = context.shared_scratchpad;
         this.define_data_members( { asignedPickColors: false } );
 		
 		// Unused shapes are commented out
@@ -141,9 +141,22 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
 		// TODO: FIX BUG WITH THESE TWO LINES
-        //user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
-        //user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
+        // user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
+        // user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
+	'draw_rectangle': function( model_transform, rectLength, rectDirection )
+	  {
+		var graphics_state  = this.shared_scratchpad.graphics_state;
+		
+		var lightBlue = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 );
+		
+		for (var i = 0; i < rectLength; i++)
+		{
+			shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
+		}
+		return model_transform;
+	  },
     'display': function(time, pickFrame)
       {
         var graphics_state  = this.shared_scratchpad.graphics_state,
@@ -156,7 +169,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         var t = graphics_state.animation_time/1000, light_orbit = [ Math.cos(t), Math.sin(t) ];
         if (!pickFrame) 
         {
-          graphics_state.lights.push( new Light( vec4( 0, 3, 2, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
+			graphics_state.lights.push( new Light( vec4( 0, 3, 2, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
         }
 
         // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.
@@ -173,11 +186,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         Code for objects in world
         **********************************/                                     
 
-		shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
-    // shapes_in_scene.
+		model_transform = this.draw_rectangle( model_transform, 3, vec3(1,0,0) );
+		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0) );
+		// shapes_in_scene.
 
-    model_transform = mult( translation( 2, 0, 0 ), model_transform );
-    shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
+		// model_transform = mult( translation( 2, 0, 0 ), model_transform );
+		// shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
 		
       }
   }, Animation );
