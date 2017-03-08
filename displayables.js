@@ -48,9 +48,10 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - A displayable object that 
 
 Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Manager can manage.  Adds first-person style camera matrix controls to the canvas
   { 'construct': function( context )
-      { // 1st parameter below is our starting camera matrix.  2nd is the projection:  The matrix that determines how depth is treated.  It projects 3D points onto a plane.
-        context.shared_scratchpad.graphics_state = new Graphics_State( translation(0, 0, -25), ortho( -10, 10, -10/(canvas.width/canvas.height), 10/(canvas.width/canvas.height), 0.1, 1000), 0 );
-        this.define_data_members( { graphics_state: context.shared_scratchpad.graphics_state, thrust: vec3(), origin: vec3( 0, 5, 0 ), looking: false } );
+      { var viewSize =  20;
+		// 1st parameter below is our starting camera matrix.  2nd is the projection:  The matrix that determines how depth is treated.  It projects 3D points onto a plane.
+        context.shared_scratchpad.graphics_state = new Graphics_State( mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) ), ortho( -viewSize, viewSize, -viewSize/(canvas.width/canvas.height), viewSize/(canvas.width/canvas.height), 0.1, 1000), 0 );
+        this.define_data_members( { graphics_state: context.shared_scratchpad.graphics_state, thrust: vec3(), origin: vec3( 0, 0, 0 ), looking: false } );
 
         // *** Mouse controls: *** For Debugging Purposes
         this.mouse = { "from_center": vec2() };
@@ -73,7 +74,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
         controls.add( ",",     this, function() { this.graphics_state.camera_transform = mult( rotation( 6, 0, 0,  1 ), this.graphics_state.camera_transform ); } );
         controls.add( ".",     this, function() { this.graphics_state.camera_transform = mult( rotation( 6, 0, 0, -1 ), this.graphics_state.camera_transform ); } );
         controls.add( "o",     this, function() { this.origin = mult_vec( inverse( this.graphics_state.camera_transform ), vec4(0,0,0,1) ).slice(0,3)         ; } );
-        controls.add( "r",     this, function() { this.graphics_state.camera_transform = translation(0, 0, -25)                                                ; } );
+        //controls.add( "r",     this, function() { this.graphics_state.camera_transform = translation(0, 0, -25)                                                ; } );
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       { var C_inv = inverse( this.graphics_state.camera_transform ), pos = mult_vec( C_inv, vec4( 0, 0, 0, 1 ) ),
@@ -113,7 +114,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0 } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0 } );
 		
 		// Unused shapes are commented out
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
@@ -122,6 +123,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         shapes_in_use.tetrahedron     = new Tetrahedron( true );      // it many times per call to display to get multiple cubes in the scene.
         shapes_in_use.windmill        = new Windmill( 10 );
 		shapes_in_use.cube			  = new Cube();
+		shapes_in_use.sphere		  = new Sphere(50,50);
+		shapes_in_use.cylinder		  = new Capped_Cylinder(50,50);
         
         shapes_in_use.triangle_flat        = Triangle.prototype.auto_flat_shaded_version();
         shapes_in_use.strip_flat           = Square.prototype.auto_flat_shaded_version();
@@ -137,6 +140,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+g", this, function() { this.shared_scratchpad.graphics_state.gouraud       ^= 1; } );   // Make the keyboard toggle some
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
+		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
 		
 		var picker = this.picker;
 		
@@ -162,7 +166,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 	  },
 	'check_color_repeat': function( r, g, b )
 	  {
-		if ( r === 0 && g === 0 && b === 0 )	// can't be background color
+		if ( r === backR && g === backG && b === backB )	// can't be background color
 			return true;
 		shapes_in_scene.forEach( function(entry) {
 			if (entry[0] === r && entry[1] === g && entry[2] === b)
@@ -222,7 +226,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         var t = graphics_state.animation_time/1000, light_orbit = [ Math.cos(t), Math.sin(t) ];
         if (!pickFrame) 
         {
-			graphics_state.lights.push( new Light( vec4( 0, 3, 2, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Sun point light, placed at the center of the sun
+			graphics_state.lights.push( new Light( vec4( -20, 20, 5, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Light to create 3Dness
+			graphics_state.lights.push( new Light( vec4( -20+22.6, 20-22.6, 5-22.6, 1 ), Color( 1, 1, 1, 1 ), 80 ) );
         }
 
         // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.
@@ -232,19 +237,45 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			blueGreen	      = new Material( Color( 0.051, 0.8  , 0.729, 1 ), .15, .7, .5, 80 ),
 			lightBlue	      = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
 			brownOrange       = new Material( Color( 0.6  , 0.251, 0.137, 1 ), .15, .7, .3, 90 ),
-			lightRed      	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, .4, 70 ),
+			lightRed      	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, 0, 70 ),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
 
         /**********************************
         Code for objects in world
         **********************************/                                     
-
-		model_transform = this.draw_rectangle( model_transform, 3, vec3(1,0,0), pickFrame );
+		// Initial path
+		model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
+		model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
 		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
-		// shapes_in_scene.
-
-		// model_transform = mult( translation( 2, 0, 0 ), model_transform );
-		// shapes_in_use.cube.draw(graphics_state, model_transform, lightBlue);
+		
+		// Movable path
+		var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
+		// Allow rotation of movable path w.r.t. time
+		if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
+		if (!this.moved && this.pausable_time > 0) this.pausable_time -= graphics_state.animation_delta_time / 30;
+		if (this.pausable_time > 90) this.pausable_time = 90; if (this.pausable_time < 0) this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
+		
+		var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
+		model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
+		this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
+		model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
+		
+		// End path
+		model_transform = mult( translation( 22.6, 8-22.6, -12-22.6 ), model_transform );
+		model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame );
+		model_transform = mult( translation( 0, 0, 2 ), model_transform );
+		model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame );
+		
+		// Decorations
+		model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
+		shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+		model_transform_decoration = mult( translation( 0, 0, -2+.45 ), model_transform_decoration );
+		shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+		model_transform_decoration = mult( translation( 0, 0, 2*(2-.45) ), model_transform_decoration );
+		shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+		
+		model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
+		shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
 		
 		this.assignedPickColors = true;
 		this.objIndex = 0;
