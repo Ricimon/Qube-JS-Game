@@ -4,6 +4,7 @@
 var shapes_in_use = [], shaders_in_use = [], textures_in_use = [], active_shader, texture_filenames_to_load = [], gl, g_addrs;    // ****** GLOBAL VARIABLES *******
 var shapes_in_scene = [];
 var backR = 39/255, backG = 46/255, backB = 54/255;
+var viewSize = 20, title = true;
 
 function Declare_Any_Class( name, methods, superclass = Object, scope = window )              // Making javascript behave more like Object Oriented C++
   {
@@ -284,7 +285,7 @@ Declare_Any_Class( "Texture",                                                   
 
         gl.bindTexture(gl.TEXTURE_2D, this.id );
         gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                      new Uint8Array([255, 0, 0, 255]));              // A single red pixel, as a placeholder image to prevent console warning
+                      new Uint8Array([255, 255, 255, 255]));              // A single white pixel that blends with rest of webpage, as a placeholder image to prevent console warning
         this.image          = new Image();
         this.image.onload   = ( function (texture, bool_mipMap)       // This self-executing anonymous function makes the real onload() function
           { return function( )      // Instructions for whenever the real image file is ready
