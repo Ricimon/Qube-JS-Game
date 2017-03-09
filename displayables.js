@@ -109,11 +109,15 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
         this.graphics_state.camera_transform = mult( translation( scale_vec( meters_per_frame, this.thrust ) ), this.graphics_state.camera_transform );
       }
   }, Animation );
+
+var global_picker;  // experimental
   
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
         this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0 } );
+		
+		global_picker = this.picker;	// experimental
 		
 		// Unused shapes are commented out
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,

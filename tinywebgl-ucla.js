@@ -46,11 +46,12 @@ Declare_Any_Class( "Shape",
         for( var i = 0; i < 4; i++ )      // Memory addresses of the buffers given to this shape in the graphics card.
         { this.graphics_card_buffers.push( gl.createBuffer() );
           gl.bindBuffer(gl.ARRAY_BUFFER, this.graphics_card_buffers[i] );
+		  if (!title) { gl.bindFramebuffer( gl.FRAMEBUFFER, global_picker.framebuffer ); global_picker.update() }	// experimental
           switch(i) {
             case 0: gl.bufferData(gl.ARRAY_BUFFER, flatten(this.positions), gl.STATIC_DRAW); break;
             case 1: gl.bufferData(gl.ARRAY_BUFFER, flatten(this.normals), gl.STATIC_DRAW); break;
             case 2: gl.bufferData(gl.ARRAY_BUFFER, flatten(this.texture_coords), gl.STATIC_DRAW); break;  }
-        }
+		}
         if( this.indexed )
         { gl.getExtension("OES_element_index_uint");
           this.index_buffer = gl.createBuffer();
