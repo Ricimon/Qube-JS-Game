@@ -45,21 +45,20 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - A displayable object that 
         }
       }
   }, Animation );
-
+  
 Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Manager can manage.  Adds first-person style camera matrix controls to the canvas
   { 'construct': function( context )
-      { var viewSize =  20;
-		// 1st parameter below is our starting camera matrix.  2nd is the projection:  The matrix that determines how depth is treated.  It projects 3D points onto a plane.
-        context.shared_scratchpad.graphics_state = new Graphics_State( mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) ), ortho( -viewSize, viewSize, -viewSize/(canvas.width/canvas.height), viewSize/(canvas.width/canvas.height), 0.1, 1000), 0 );
+      { // 1st parameter below is our starting camera matrix.  2nd is the projection:  The matrix that determines how depth is treated.  It projects 3D points onto a plane.
+        context.shared_scratchpad.graphics_state = new Graphics_State( translation(0,0,-25), ortho( -viewSize, viewSize, -viewSize/(canvas.width/canvas.height), viewSize/(canvas.width/canvas.height), 0.1, 1000), 0 );
         this.define_data_members( { graphics_state: context.shared_scratchpad.graphics_state, thrust: vec3(), origin: vec3( 0, 0, 0 ), looking: false } );
 
         // *** Mouse controls: *** For Debugging Purposes
-        this.mouse = { "from_center": vec2() };
-        var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };   // Measure mouse steering, for rotating the flyaround camera.
-        canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
-        canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = mouse_position(e);      } } ) (this), false );
-        canvas.addEventListener( "mousemove", ( function(self) { return function(e) { e = e || window.event;    self.mouse.from_center = mouse_position(e); } } ) (this), false );
-        canvas.addEventListener( "mouseout",  ( function(self) { return function(e) { self.mouse.from_center = vec2(); }; } ) (this), false );    // Stop steering if the mouse leaves the canvas.
+        // this.mouse = { "from_center": vec2() };
+        // var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };   // Measure mouse steering, for rotating the flyaround camera.
+        // canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
+        // canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = mouse_position(e);      } } ) (this), false );
+        // canvas.addEventListener( "mousemove", ( function(self) { return function(e) { e = e || window.event;    self.mouse.from_center = mouse_position(e); } } ) (this), false );
+        // canvas.addEventListener( "mouseout",  ( function(self) { return function(e) { self.mouse.from_center = vec2(); }; } ) (this), false );    // Stop steering if the mouse leaves the canvas.
       },
     'init_keys': function( controls )   // init_keys():  Define any extra keyboard shortcuts here
       { 
@@ -89,32 +88,36 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
 		var leeway = 70,  degrees_per_frame = .0004 * this.graphics_state.animation_delta_time,
                           meters_per_frame  =   .01 * this.graphics_state.animation_delta_time;
         // Third-person camera mode: Is a mouse drag occurring?
-        if( this.mouse.anchor )
-        {
-          var dragging_vector = subtract( this.mouse.from_center, this.mouse.anchor );            // Arcball camera: Spin the scene around the world origin on a user-determined axis.
-          if( length( dragging_vector ) > 0 )
-            this.graphics_state.camera_transform = mult( this.graphics_state.camera_transform,    // Post-multiply so we rotate the scene instead of the camera.
-                mult( translation( this.origin ),
-                mult( rotation( .05 * length( dragging_vector ), dragging_vector[1], dragging_vector[0], 0 ),
-                      translation(scale_vec( -1, this.origin ) ) ) ) );
-        }
-        // First-person flyaround mode:  Determine camera rotation movement when the mouse is past a minimum distance (leeway) from the canvas's center.
-        var offset_plus  = [ this.mouse.from_center[0] + leeway, this.mouse.from_center[1] + leeway ];
-        var offset_minus = [ this.mouse.from_center[0] - leeway, this.mouse.from_center[1] - leeway ];
+        // if( this.mouse.anchor )
+        // {
+          // var dragging_vector = subtract( this.mouse.from_center, this.mouse.anchor );            // Arcball camera: Spin the scene around the world origin on a user-determined axis.
+          // if( length( dragging_vector ) > 0 )
+            // this.graphics_state.camera_transform = mult( this.graphics_state.camera_transform,    // Post-multiply so we rotate the scene instead of the camera.
+                // mult( translation( this.origin ),
+                // mult( rotation( .05 * length( dragging_vector ), dragging_vector[1], dragging_vector[0], 0 ),
+                      // translation(scale_vec( -1, this.origin ) ) ) ) );
+        // }
+        // // First-person flyaround mode:  Determine camera rotation movement when the mouse is past a minimum distance (leeway) from the canvas's center.
+        // var offset_plus  = [ this.mouse.from_center[0] + leeway, this.mouse.from_center[1] + leeway ];
+        // var offset_minus = [ this.mouse.from_center[0] - leeway, this.mouse.from_center[1] - leeway ];
 
-        for( var i = 0; this.looking && i < 2; i++ )      // Steer according to "mouse_from_center" vector, but don't start increasing until outside a leeway window from the center.
-        {
-          var velocity = ( ( offset_minus[i] > 0 && offset_minus[i] ) || ( offset_plus[i] < 0 && offset_plus[i] ) ) * degrees_per_frame;  // Use movement's quantity unless the &&'s zero it out
-          this.graphics_state.camera_transform = mult( rotation( velocity, i, 1-i, 0 ), this.graphics_state.camera_transform );     // On X step, rotate around Y axis, and vice versa.
-        }     // Now apply translation movement of the camera, in the newest local coordinate frame
+        // for( var i = 0; this.looking && i < 2; i++ )      // Steer according to "mouse_from_center" vector, but don't start increasing until outside a leeway window from the center.
+        // {
+          // var velocity = ( ( offset_minus[i] > 0 && offset_minus[i] ) || ( offset_plus[i] < 0 && offset_plus[i] ) ) * degrees_per_frame;  // Use movement's quantity unless the &&'s zero it out
+          // this.graphics_state.camera_transform = mult( rotation( velocity, i, 1-i, 0 ), this.graphics_state.camera_transform );     // On X step, rotate around Y axis, and vice versa.
+        // }     // Now apply translation movement of the camera, in the newest local coordinate frame
         this.graphics_state.camera_transform = mult( translation( scale_vec( meters_per_frame, this.thrust ) ), this.graphics_state.camera_transform );
       }
   }, Animation );
 
+var global_picker;  // experimental
+  
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
         this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true } );
+		
+		global_picker = this.picker;	// experimental
 		
 		// Unused shapes are commented out
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
@@ -152,6 +155,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;    
+			title = false;
 			var readout = new Uint8Array( 1 * 1 * 4 );
 			gl.bindFramebuffer( gl.FRAMEBUFFER, picker.framebuffer );
 			gl.readPixels( mouse_position[0], mouse_position[1], 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
@@ -219,7 +223,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		return model_transform;
 	  },
     'display': function(time, pickFrame)
-      {
+      {	
         var graphics_state  = this.shared_scratchpad.graphics_state,
             model_transform = mat4();             // We have to reset model_transform every frame, so that as each begins, our basis starts as the identity.
         shaders_in_use[ "Default" ].activate();
@@ -227,8 +231,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         // *** Lights: *** Values of vector or point lights over time.  Arguments to construct a Light(): position or vector (homogeneous coordinates), color, size
         graphics_state.lights = [];                    // First clear the light list each frame so we can replace & update lights.
 
-        var t = graphics_state.animation_time/1000, light_orbit = [ Math.cos(t), Math.sin(t) ];
-        if (!pickFrame) 
+        var t = graphics_state.animation_time/1000;
+        if (!pickFrame && !title) 
         {
 			graphics_state.lights.push( new Light( vec4( -20, 20, 5, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Light to create 3Dness
 			graphics_state.lights.push( new Light( vec4( -20+22.6, 20-22.6, 5-22.6, 1 ), Color( 1, 1, 1, 1 ), 80 ) );
@@ -242,52 +246,63 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			lightBlue	      = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
 			brownOrange       = new Material( Color( 0.6  , 0.251, 0.137, 1 ), .15, .7, .3, 90 ),
 			lightRed      	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, 0, 70 ),
+			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
 
         /**********************************
         Code for objects in world
         **********************************/                                     
-		// Initial path
-		model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
-		model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
-		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );  
-          
-		// Movable path
-		var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
-		// Allow rotation of movable path w.r.t. time
-		if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
-		if (!this.moved && this.pausable_time > 0) this.pausable_time -= graphics_state.animation_delta_time / 30;
-		if (this.pausable_time > 90) this.pausable_time = 90; if (this.pausable_time < 0) this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
+		if (title)	// title screen
+		{
+			shapes_in_use.strip.draw( graphics_state, scale(viewSize,viewSize,1), titleScreen );
+		}
+		else
+		{
+			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
+			
+			// Initial path
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
+			model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
+			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
+			
+			// Movable path
+			var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
+			// Allow rotation of movable path w.r.t. time
+			if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
+			if (!this.moved && this.pausable_time > 0) this.pausable_time -= graphics_state.animation_delta_time / 30;
+			if (this.pausable_time > 90) this.pausable_time = 90; if (this.pausable_time < 0) this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
+			
+			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
+			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
+			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
+			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
+			
+			// End path
+			model_transform = mult( translation( 22.6, 8-22.6, -12-22.6 ), model_transform );
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame );
+			model_transform = mult( translation( 0, 0, 2 ), model_transform );
+			model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame );
+			
+			// Decorations
+			model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
+			shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+			model_transform_decoration = mult( translation( 0, 0, -2+.45 ), model_transform_decoration );
+			shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+			model_transform_decoration = mult( translation( 0, 0, 2*(2-.45) ), model_transform_decoration );
+			shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+			
+			model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
+			shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
 		
-		var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
-		model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
-		this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
-		model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
-		
-		// End path
-		model_transform = mult( translation( 22.6, 8-22.6, -12-22.6 ), model_transform );
-		model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame );
-		model_transform = mult( translation( 0, 0, 2 ), model_transform );
-		model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame );
-		
-		// Decorations
-		model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
-		shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
-		model_transform_decoration = mult( translation( 0, 0, -2+.45 ), model_transform_decoration );
-		shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
-		model_transform_decoration = mult( translation( 0, 0, 2*(2-.45) ), model_transform_decoration );
-		shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
-		
-		model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
-		shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
-		this.assignedPickColors = true;
-		this.objIndex = 0;
-          
-        //Cubeman
-        if (this.firstFrame){
-            this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
-            this.firstFrame = false;
-        }
-        this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
+			this.assignedPickColors = true;
+			this.objIndex = 0;
+            
+            //Cubeman
+            if (this.firstFrame){
+                this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
+                this.firstFrame = false;
+            }
+            this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
+		}
       }
   }, Animation );
