@@ -114,7 +114,7 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0 } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true } );
 		
 		// Unused shapes are commented out
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
@@ -141,6 +141,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
+        controls.add( "i",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,.1,0) )} } );
+        controls.add( "j",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} } );
+        controls.add( "k",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,-.1,0) )} } )
+        controls.add( "l",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} } )
 		
 		var picker = this.picker;
 		
@@ -156,7 +160,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
-		// TODO: FIX BUG WITH THESE TWO LINES
+		// TODO: FIX BUG WITH THESE TWO LINES+
         // user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
         // user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
@@ -246,8 +250,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		// Initial path
 		model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
 		model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
-		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
-		
+		model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );  
+          
 		// Movable path
 		var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
 		// Allow rotation of movable path w.r.t. time
@@ -276,9 +280,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		
 		model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
 		shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
-		
 		this.assignedPickColors = true;
 		this.objIndex = 0;
-		
+          
+        //Cubeman
+        if (this.firstFrame){
+            this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
+            this.firstFrame = false;
+        }
+        this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
       }
   }, Animation );
