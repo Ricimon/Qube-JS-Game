@@ -3,18 +3,18 @@ Declare_Any_Class( "Picker",
 	'construct'		: function( canvas )
 	{
 		this.define_data_members( {
-			plist					: [],
+			// plist					: [],
 			canvas					: canvas,	// current canvas
 			pickTexture				: null,		// WebGL 2D Texture
 			framebuffer 			: null,
 			renderbuffer 			: null,
 			pickedLocation			: -1, 		// Stores the current location that is picked
 
-			processHitsCallback 	: null,
-			addHitCallback 			: null,
-			removeHitCallback 		: null,
-			hitPropertyCallback 	: null,
-			moveCallback 			: null
+			// processHitsCallback 	: null,
+			// addHitCallback 			: null,
+			// removeHitCallback 		: null,
+			// hitPropertyCallback 	: null,
+			// moveCallback 			: null
 		} ); 
 
 		this.configure();

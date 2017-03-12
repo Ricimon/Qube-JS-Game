@@ -136,8 +136,6 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         shapes_in_use.tetrahedron_flat          = Tetrahedron.prototype.auto_flat_shaded_version( true );
         shapes_in_use.windmill_flat             = Windmill.prototype.auto_flat_shaded_version( 10 );
 		
-        // this.picker = new Picker( canvas );
-        // picker.configure();
       },
     'init_keys': function( controls )   // init_keys():  Define any extra keyboard shortcuts here
       {
@@ -157,13 +155,16 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		
 		    this.mouse = { "from_center": vec2() };
 		    var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
-        //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
+        canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
+          self.mouse.anchor = mouse_position( e );
           if (currentScene == 0) currentScene = 1;
           var canvasCoords = global_picker.getCanvasCoords( e );      // get the canvas coords from mouse click with origin set to canvas bottom left
           var blockman_loc = -1;
           console.log( blockman_loc = global_picker.find( canvasCoords ) );   // try to find the input coordinates on an existing path
-          global_picker.setPickLocation( blockman_loc ); } } ) (this), false );   // update the picking location to be passed to a move function later on
+          global_picker.setPickLocation( blockman_loc ); } } ) (this), false );   // update the picking location to be passed to a move function later
+        canvas.addEventListener( "mousemove", ( function(self) { return function(e) { e = e || window.event;    self.mouse.from_center = mouse_position(e); } } ) (this), false );
+        canvas.addEventListener( "mouseout",  ( function(self) { return function(e) { self.mouse.from_center = vec2(); }; } ) (this), false );    // Stop steering if the mouse leaves the canvas.
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
