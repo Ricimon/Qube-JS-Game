@@ -42,15 +42,19 @@ index.html - The web page document containing the canvas (drawing surface), that
       function( callback, element) { window.setTimeout(callback, 1000/60);  };
     })();
 </script>
-<audio loop autoplay>
-	<source src="background.mp3" type="audio/mp3">
+<audio autoplay loop>
+	<source src="background.mp3" type="audio/mp3" />
 Your browser does not support the audio element.
 </audio>
 </head><body>
 <canvas id="gl-canvas" width="800" height="600"></canvas><p>
 <!-- <a href="#" onclick='document.getElementById( "instructions" ).style = "display:block"; this.style = "display:none";'> Click for instructions </a><div id="instructions" style = "display:none"> -->
 Controlling this Graphics Object: 
-<ul><li>
-	Press r to rotate the movable path!!!
+<ul>
+    <li>Press r to rotate the movable path!</li>
+    <li>Press n to advance to the next level!!</li>
+    <li>Press p to view the picking colors!!!</li>
+    <li>IJKL are the (testing) movement for cubeman</li>
+</ul>
 </div></p></body>
 </html>

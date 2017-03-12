@@ -1,72 +1,75 @@
-//expected input 
-/*
-    The block indexing must be consistent, should be 0 down to up or left to right depending on the axis
-    addBlock:   "length": length,
-                "transform": transform, //the transform should be to the 0 index
-                "connections": {},
-                "axis": axis  //should be either 'x' or 'y'
-    movement: the Blockname(specifyed when adding the block to blockman's known blocks) and index using my naming scheme
-*/
+//expected input
+//Assumptions: Blocks are only ever connected to two other blocks
 
 Declare_Any_Class( "Blockman",
 {
-    "construct": function(context, startingBlock, startingIndex, speedPerFrame = .01) {
+    "construct": function(startingIndex, startingState, speedPerFrame = .01) {
         this.define_data_members( 
             { 
-                blocks: {}, //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform
-                curBlock: startingBlock, 
-                curIndex: startingIndex, 
-                speed: speedPerFrame, 
-                animation_scene: context, //game scene context to allow call to draw rectangle for cubeman
-                moves: [], //stack of moves crafted from the Dijkstra Tree
-                altBlocks: {}
+                blocks: [], //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform 
+                curIndex: startingIndex,
+                curOffset: 0, //for smooth movement between indexes; between 0 and 1
+                curState: startingState,
+                speed: speedPerFrame,
+                states: {}, //will be dict containing whether they allow movement all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
+                moves: [] //stack of moves crafted from moveTo
             } );   
     },
-    "addBlock": function( blockName, length, transform, axis, alt = false ) {
-        let dict = this.blocks; //if not alt
-        if( alt ){
-            dict = this.altBlocks;
-        }
-        
-        dict[blockName] = {
-            "length": length,
-            "transform": transform,
-            "connections": {},
-            "axis": axis
-        }
+    "addBlock": function( transform ) {
+        this.blocks.push(transform);
     },
-    "addConnection": function( block1Name, block1Index, block2Name, block2Index, alt = false ) {
-        let dict = this.blocks; //if not alt
-        if( alt ) {
-            dict = this.altBlocks;
-        }
-        
-        dict[block1Name].connections[block1Index] = {
-            connectedTo: block2Name,
-            connectedAt: block2Index
-        }
-        dict[block2Name].connections[block2Index] = {
-            connectedTo: block1Name,
-            connectedAt: block1Index
-        }
+    "updateBlock": function( blockNumber, transform ){
+        this.blocks[blockNumber] = transform;
     },
-    "moveTo": function(blockName, blockIndex){
+    "moveTo": function(blockIndex){
         //clear the moves stack
-        //create a Dijkstra Tree and from blockName and blockIndex push all the parent nodes onto the moves stack  
-    },
-    "drawBlockman": function(){
-        //use the curBlock to search up the curBlock's model Transform
-        //use the blocks direction and the curIndex to place blockman in correct current location
-        //move if move stack isnt empty popping movements as they are completed
-        //use this.animation scene to call draw rectangle
-    },
-    "alternateBlocks": function(){
-        let tmp = {};
-        for (let block in altBlocks){ //swap all blocks in altBlocks with the current
-            tmp.block = this.blocks.block; //swap curBlock and altBlock
-            this.blocks[block] = this.altBlocks[block];
-            this.altBlocks[block] = tmp.block;
+        this.moves = [];
+        //find the blockIndex in one of the connection arrays of the current State
+        let fromConnectionIndex = null;
+        let toConnectionIndex = null;
+        connections = this.states[this.curState].connections;
+        for ( var i = 0; i < connections.length; i++ ){ //look in group of blocks in the curState
+            let connection = connections[i];
+            toConnectionIndex = connection.indexOf(blockIndex); 
+            if ( toConnectionIndex != -1){ //if this connection has block to look for
+                fromConnectionIndex = connection.indexOf(Math.round(this.curIndex));
+                if( fromConnectionIndex != -1){ //if this connection also has curBlock
+                    if( toConnectionIndex < fromConnectionIndex ) //push all indices between the two indicies 
+                        for ( let x = fromConnectionIndex; x >= toConnectionIndex; x--)
+                            this.moves.push(x);
+                    else 
+                        for ( let x = fromConnectionIndex; x <= toConnectionIndex; x++) 
+                            this.moves.push(x);
+                }
+                else
+                    console.log(blockIndex, " is unreachable from your current location");
+                return;
+            }
         }
+        console.log(blockIndex, " is unreachable in general");
+        return;
+    },
+    "where": function(){
+        if( !this.states[this.curState].allowMovement )
+            this.moves = [];
+        
+        let model_transform = this.blocks[this.curIndex];
+        model_transform = mult( model_transform, translation(0, 1.5, 0) );
+        if ( this.moves.length ) {
+            let destination = this.moves[this.moves.length-1];
+            let difference = subtract(this.blocks[this.curIndex], this.blocks[destination]);
+        }
+        return model_transform;
+        //move if move stack isnt empty popping movements as they are completed
+    },
+    "addState": function(name, connections, allowMovement = true) {
+        this.states[name] = {
+            "connections": connections,
+            "allowMovement": allowMovement
+        }
+    },
+    "changeState": function( newState ){
+        this.curState = newState;
     }
 });
                   
