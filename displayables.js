@@ -115,8 +115,8 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true } );
-		
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman( this, 1, 0 ) } );
+		//using firstframe to intialize blockman and his block map at the right point in the model_transform
 		global_picker = this.picker;	// experimental
 		
 		// Unused shapes are commented out
@@ -258,6 +258,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		}
 		else
 		{
+            if (this.firstFrame){
+                this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
+                this.firstFrame = false;
+            }
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			
 			// Initial path
@@ -298,10 +302,6 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.objIndex = 0;
             
             //Cubeman
-            if (this.firstFrame){
-                this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
-                this.firstFrame = false;
-            }
             this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
 		}
       }

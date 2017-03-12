@@ -68,5 +68,5 @@ Declare_Any_Class( "Blockman",
             this.altBlocks[block] = tmp.block;
         }
     }
-}
+});
                   
