@@ -167,9 +167,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
-		// TODO: FIX BUG WITH THESE TWO LINES
-        // user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
-        // user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
+		var graphics_state  = this.shared_scratchpad.graphics_state;
+		
+        user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( graphics_state.animation_time )/1000 + "s";
+        user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
 	'reset_scene': function()
 	  {
@@ -313,15 +314,18 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame );
 			
 			// Decorations
-			model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
-			shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
-			model_transform_decoration = mult( translation( 0, 0, -2+.45 ), model_transform_decoration );
-			shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
-			model_transform_decoration = mult( translation( 0, 0, 2*(2-.45) ), model_transform_decoration );
-			shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+			if (!pickFrame)
+			{
+				model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
+				shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+				model_transform_decoration = mult( translation( 0, 0, -2+.45 ), model_transform_decoration );
+				shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
+				model_transform_decoration = mult( translation( 0, 0, 2*(2-.45) ), model_transform_decoration );
+				shapes_in_use.strip.draw( graphics_state, mult( model_transform_decoration, scale( .3, 7, 1 ) ), lightBlue );
 			
-			model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
-			shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
+				model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
+				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
+			}
 		
 			this.assignedPickColors = true;
 			this.objIndex = 0;
@@ -367,6 +371,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			{
 				model_transform = mult( model_transform, translation( 2, 0, 0 ) );
 				this.draw_visible_rectangle( model_transform, 1 );
+			}
+			
+			var movePath_transform = mult( model_transform, translation( 0, 0, 8 ) );
+			for ( var i = 0; i < 3; i++ )
+			{
+				return;
 			}
 			break;
 		}

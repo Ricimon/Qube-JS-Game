@@ -276,7 +276,7 @@ Declare_Any_Class( "Canvas_Manager",                      // This class performs
         // Change render target back to normal scene
         gl.bindFramebuffer( gl.FRAMEBUFFER, null );
         gl.viewport( 0, 0, canvas.width, canvas.height );
-		    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		
         for( var i = 0; i < this.displayables.length; i++ )
         {
