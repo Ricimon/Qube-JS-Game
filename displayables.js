@@ -116,11 +116,11 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman("initial1", 0), cubeman_transform: mat4() } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(0, null), cubeman_transform: mat4() } );
 		
 		global_picker = this.picker;	// experimental
 		
-		// Unused shapes are commented out
+		// Unused shapes are commented out(jk)
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
         shapes_in_use.strip           = new Square();                   // each with only one instance in the graphics card's memory.
         shapes_in_use.bad_tetrahedron = new Tetrahedron( false );      // For example we'll only create one "cube" blueprint in the GPU, but we'll re-use
@@ -222,12 +222,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			}
 			else if (currentScene == 1)
 				shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
-			
+            
+            if( this.firstFrame ) { //only during the first frame so List has one of each value
+                this.blockman.addBlock(model_transform);
+            }
+
 			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
 		}
-        if( this.firstFrame ) { //only during the first frame so transform List has one of each value
-            this.blockman.addBlock(model_transform, rectLength, rectDirection);
-        }
+
 		return model_transform;
 	  },
 	'draw_visible_rectangle': function( model_transform, scaleY )
@@ -327,12 +329,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.objIndex = 0;
             
             //Cubeman
-			model_transform = translation( -6, 1.4, 8 );
+			//model_transform = translation( -6, 1.4, 8 );
             if (this.firstFrame){
                 this.firstFrame = false;
             }
-            //model_transform = this.blockman.where(); //the future
-            model_transform = mult( model_transform, this.cubeman_transform ); //give offset from mouse commands for testing 
+            model_transform = this.blockman.where();
+            model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
             shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
 			break;
 		case 2:	// level 2

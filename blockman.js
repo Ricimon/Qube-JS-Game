@@ -1,73 +1,62 @@
-//expected input 
-/*
-    Movement/input from PICKER: the Blockname(specifyed when adding the block to blockman's known blocks) and using indexing below
-    The block indexing must be consistent, should be 0-1 from down to up or left to right depending on the axis
-    addBlock:   "length": length,
-                "transform": transform, //the transform should be to the 0 index
-                "connections": {},
-                "axis": axis  //should be either 'x' or 'y'
-    
-*/
+//expected input
+//Assumptions: Blocks are only ever connected to two other blocks
 
 Declare_Any_Class( "Blockman",
 {
-    "construct": function(startingBlock, startingIndex, speedPerFrame = .01) {
+    "construct": function(startingIndex, startingState, speedPerFrame = .01) {
         this.define_data_members( 
             { 
-                blocks: {}, //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform
-                curBlock: startingBlock, 
-                curIndex: startingIndex, 
-                speed: speedPerFrame, 
-                moves: [], //stack of moves crafted from the Dijkstra Tree
-                altBlocks: {}
+                blocks: [], //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform 
+                curIndex: startingIndex,
+                curState: startingState,
+                speed: speedPerFrame,
+                states: {}, //will be dict containing all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
+                moves: [] //stack of moves crafted from moveTo
             } );   
     },
-    "addBlock": function( transform, length, axis, alt = false ) {
-        let dict = this.blocks; //if not alt
-        if( alt ){
-            dict = this.altBlocks;
-        }
-        
-        dict["changeLater"] = {
-            "length": length,
-            "transform": transform,
-            "connections": {},
-            "axis": axis
-        }
+    "addBlock": function( transform ) {
+        this.blocks.push(transform);
     },
-    "addConnection": function( block1Name, block1Index, block2Name, block2Index, alt = false ) {
-        let dict = this.blocks; //if not alt
-        if( alt ) {
-            dict = this.altBlocks;
-        }
-        
-        dict[block1Name].connections[block1Index] = {
-            connectedTo: block2Name,
-            connectedAt: block2Index
-        }
-        dict[block2Name].connections[block2Index] = {
-            connectedTo: block1Name,
-            connectedAt: block1Index
-        }
+    "updateBlock": function( blockNumber, transform ){
+        this.blocks[blockNumber] = transform;
     },
-    "moveTo": function(blockName, blockIndex){
+    "moveTo": function(blockIndex){
         //clear the moves stack
-        //create a Dijkstra Tree and from blockName and blockIndex push all the parent nodes onto the moves stack  
+        this.moves = [];
+        //find the blockIndex in one of the connection arrays of the current State
+        let fromConnectionIndex = null;
+        let toConnectionIndex = null;
+        for ( connections in this.states[this.curState] ){ //look in group of blocks in the curState
+            toConnectionIndex = connections.findIndex(blockIndex); 
+            if ( toConnectionIndex != -1){ //if this connections has block to look for
+                fromConnectionIndex = connections.findIndex(Math.round(this.curIndex));
+                if( fromConnectionIndex != -1){ //if this connection also has curBlock
+                    if( toConnectionIndex < fromConnectionIndex ) //push all indices between the two indicies 
+                        for ( let x = fromConnectionIndex; x >= toConnectionIndex; x--)
+                            moves.push(x);
+                    else 
+                        for ( let x = fromConnectionIndex; x <= toConnectionIndex; x++) 
+                            moves.push(x);
+                }
+                else
+                    console.log(blockIndex, " is unreachable");
+                break;
+            }
+        }
     },
-    "where": function(){ 
-        return this.blocks[this.curBlock].transform;
+    "where": function(){
+        let model_transform = this.blocks[this.curIndex]
+        model_transform = mult( model_transform, translation(0, 1.5, 0) );
+        return model_transform;
+        //if in a rotating state, dont allow movement
         //use the curBlock to search up the curBlock's model Transform
         //use the blocks direction and the curIndex to place blockman in correct current location
         //move if move stack isnt empty popping movements as they are completed
         //return the model_transform
     },
-    "alternateBlocks": function(){
-        let tmp = {};
-        for (let block in altBlocks){ //swap all blocks in altBlocks with the current version in blocks
-            tmp.block = this.blocks.block; 
-            this.blocks[block] = this.altBlocks[block];
-            this.altBlocks[block] = tmp.block;
-        }
+    "addState": null,
+    "changeState": function( newState ){
+        this.curState = newState;
     }
 });
                   
