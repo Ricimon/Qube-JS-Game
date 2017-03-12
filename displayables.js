@@ -167,9 +167,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
-		// TODO: FIX BUG WITH THESE TWO LINES+
-        user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
-        user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
+		// TODO: FIX BUG WITH THESE TWO LINES
+        // user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
+        // user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
 	'reset_scene': function()
 	  {
@@ -186,7 +186,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				return false;
 		}, this );
 	  },
-	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame)
+	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame )
 	  {
 		var graphics_state  = this.shared_scratchpad.graphics_state;
 		
@@ -209,27 +209,38 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				}
 				else {
 					var currentColor = shapes_in_scene[this.objIndex];
-          // var currentColor = shapes_in_scene[i];
+					// var currentColor = shapes_in_scene[i];							   
 					r = currentColor[0];
 					g = currentColor[1];
 					b = currentColor[2];
-          // console.log( currentColor );
+					// console.log( currentColor );					 
 				}
 				
 				var objColor = new Material( Color( r, g, b ), 1, 0, 0, 1 );
 				shapes_in_use.cube.draw( graphics_state, model_transform, objColor );
 				this.objIndex++;
 			}
-			else
+			else if (currentScene == 1)
 				shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
 			
 			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
 		}
-        
         if( this.firstFrame ) { //only during the first frame so transform List has one of each value
             this.blockman.addBlock(model_transform, rectLength, rectDirection);
         }
 		return model_transform;
+	  },
+	'draw_visible_rectangle': function( model_transform, scaleY )
+	  {
+		var graphics_state  = this.shared_scratchpad.graphics_state;
+		
+		var tan		 = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1, .5,  0, 40 ),
+			darkTan	 = new Material( Color( 170/255, 140/255, 100/255, 1 ), 1, .5,  0, 40 ),
+			lightTan = new Material( Color( 240/255, 210/255, 170/255, 1 ), 1, .5,  0, 40 );
+			
+		shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 0, 1-scaleY, 1 ) ), scale( 1, scaleY, 1 ) ), tan );
+		shapes_in_use.strip.draw( graphics_state, mult( mult( mult( model_transform, translation( 0, 1, 0 ) ), rotation( 90, 1, 0, 0 ) ), scale( 1, 1, 1 ) ), lightTan );
+		shapes_in_use.strip.draw( graphics_state, mult( mult( mult( model_transform, translation( -1, 1-scaleY, 0 ) ), rotation( 90, 0, 1, 0 ) ), scale( 1, scaleY, 1 ) ), darkTan );
 	  },
     'display': function(time, pickFrame)
       {	
@@ -241,20 +252,29 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         graphics_state.lights = [];                    // First clear the light list each frame so we can replace & update lights.
 
         var t = graphics_state.animation_time/1000;
-        if (!pickFrame && currentScene == 1) 
-        {
-			graphics_state.lights.push( new Light( vec4( -20, 20, 5, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Light to create 3Dness
-			graphics_state.lights.push( new Light( vec4( -20+22.6, 20-22.6, 5-22.6, 1 ), Color( 1, 1, 1, 1 ), 80 ) );
-        }
+        if (!pickFrame)
+		{
+			if (currentScene == 1) 
+			{
+				graphics_state.lights.push( new Light( vec4( -20, 20, 5, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Light to create 3Dness
+				graphics_state.lights.push( new Light( vec4( -20+22.6, 20-22.6, 5-22.6, 1 ), Color( 1, 1, 1, 1 ), 80 ) );
+			}
+			if (currentScene == 2)
+			{
+				graphics_state.lights.push( new Light( vec4( 0, 0, 10, 1 ), Color( 0, 1, 0, 1 ), 15 ) );	
+			}
+		}
 
         // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.
         // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
-        var emissiveRed		  = new Material( Color( 1    , 0.2  , 0.1  , 1 ), .9 ,  0,  0, 1  ),	 // Omit the final (string) parameter if you want no texture
-			greyPlanet 		  = new Material( Color( 0.827, 0.827, 0.827, 1 ), .15, .7, .8, 30 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
-			blueGreen	      = new Material( Color( 0.051, 0.8  , 0.729, 1 ), .15, .7, .5, 80 ),
-			lightBlue	      = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
-			brownOrange       = new Material( Color( 0.6  , 0.251, 0.137, 1 ), .15, .7, .3, 90 ),
-			lightRed      	  = new Material( Color( 1	  , 0.5  , 0.5  , 1 ), .15, .9, 0, 70 ),
+        var emissiveRed		  = new Material( Color( 1      , 0.2    , 0.1    , 1 ), .9 ,  0,  0, 1  ),	 // Omit the final (string) parameter if you want no texture
+			lightBlue	      = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), .15, .7,  0, 10 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
+			brownOrange       = new Material( Color( 0.6    , 0.251  , 0.137  , 1 ), .15, .7, .3, 90 ),
+			lightRed      	  = new Material( Color( 1	    , 0.5    , 0.5    , 1 ), .15, .9,  0, 70 ),
+			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .5,  0, 40 ),
+			darkTan			  = new Material( Color( 170/255, 140/255, 100/255, 1 ), 1,   .5,  0, 40 ),
+			lightTan		  = new Material( Color( 240/255, 210/255, 170/255, 1 ), 1,   .5,  0, 40 ),
+			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
 
@@ -264,17 +284,16 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		switch(currentScene)
 		{
 		case 0:	// title screen
-			shapes_in_use.strip.draw( graphics_state, scale(viewSize,viewSize,1), titleScreen );
+			shapes_in_use.strip.draw( graphics_state, scale(viewSize+1,viewSize+1,1), titleScreen );
 			break;
 		case 1:	// level 1
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			
 			// Initial path
-			model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame);
-            var model_transform_decoration = model_transform;	// for later
-			model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame);
-			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame);
-            
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
+			model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
+			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
+			
 			// Movable path
 			var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
 			// Allow rotation of movable path w.r.t. time
@@ -283,15 +302,15 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if (this.pausable_time > 90) this.pausable_time = 90; if (this.pausable_time < 0) this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
 			
 			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
-			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work 
-			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame); 
-			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame);
+			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
+			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
+			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
 			
 			// End path
 			model_transform = mult( translation( 22.6, 8-22.6, -12-22.6 ), model_transform );
-			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame);
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame );
 			model_transform = mult( translation( 0, 0, 2 ), model_transform );
-			model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame);
+			model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame );
 			
 			// Decorations
 			model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
@@ -317,9 +336,39 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
 			break;
 		case 2:	// level 2
+			graphics_state.camera_transform = mult( translation(0, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
+			graphics_state.projection_transform = ortho( -(viewSize+5), viewSize+5, -(viewSize+5)/(canvas.width/canvas.height), (viewSize+5)/(canvas.width/canvas.height), 0.1, 1000)
 			
+			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 100, -100, -100 ) ), scale( 100, 100, 100 ) ), emissiveLightBlue );	// janky background
+			
+			model_transform = translation( 0, 0, 5 );
+			shapes_in_use.strip.draw( graphics_state, mult( model_transform, scale( 5, 5, 5 ) ), tan );
+			model_transform = translation( -5, 0, 0 );
+			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, scale( 5, 5, 5 ) ), rotation( 90, 0, 1, 0 ) ), darkTan );
+			model_transform = translation( 0, 5, 0 );
+			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, scale( 5, 5, 5 ) ), rotation( 90, 1, 0, 0 ) ), lightTan );
+			
+			model_transform = translation( -4, -2, 6 );
+			this.draw_visible_rectangle( model_transform, .2 );
+			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
+			this.draw_visible_rectangle( model_transform, .2 );
+			for( var i = 1; i < 7; i++ )
+			{
+				model_transform = mult( model_transform, translation( 0, 0, -2 ) );
+				this.draw_visible_rectangle( model_transform, .2 );
+			}
+			model_transform = mult( model_transform, translation( 0, -4, -2 ) );
+			for ( var i = 0; i < 7; i++ )
+			{
+				model_transform = mult( model_transform, translation( 0, 2, 0 ) );
+				this.draw_visible_rectangle( model_transform, 1 );
+			}
+			for ( var i = 0; i < 2; i++ )
+			{
+				model_transform = mult( model_transform, translation( 2, 0, 0 ) );
+				this.draw_visible_rectangle( model_transform, 1 );
+			}
 			break;
-            this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
 		}
       }
   }, Animation );
