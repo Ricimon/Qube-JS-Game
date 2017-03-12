@@ -265,11 +265,18 @@ Declare_Any_Class( "Canvas_Manager",                      // This class performs
         for ( let name in shapes_in_use ) if( !shapes_in_use[name].sent_to_GPU ) shapes_in_use[name].copy_onto_graphics_card();	// Create, populate, and send buffers to the GPU
 
         gl = this.gl;                                                     // Set the global gl variable to the current one that is drawing, belonging to this canvas.
+        
+        // Change render target to pick buffer for picking
+        gl.bindFramebuffer( gl.FRAMEBUFFER, global_picker.framebuffer );
+        gl.viewport( 0, 0, canvas.width, canvas.height );
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);             // Clear its pixels and z-buffer.   
+        
+        for ( var i = 0; i < this.displayables.length; i++ ) this.displayables[ i ].display( time, true );                                 // Draw picking game scene
 		
-        this.displayables[ 1 ].display( time, true );                                 // Draw picking game scene
-		
-		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // Change render target back to normal scene
+        gl.bindFramebuffer( gl.FRAMEBUFFER, null );
+        gl.viewport( 0, 0, canvas.width, canvas.height );
+		    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		
         for( var i = 0; i < this.displayables.length; i++ )
         {

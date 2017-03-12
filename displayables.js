@@ -154,13 +154,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		this.mouse = { "from_center": vec2() };
 		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
-        canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;    
+        canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
 			title = false;
 			var readout = new Uint8Array( 1 * 1 * 4 );
 			gl.bindFramebuffer( gl.FRAMEBUFFER, picker.framebuffer );
-			gl.readPixels( mouse_position[0], mouse_position[1], 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
+			gl.readPixels( e.clientX, e.clientY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
 			gl.bindFramebuffer( gl.FRAMEBUFFER, null );
-			console.log(readout); } } ) (this), false );
+			// console.log( readout );
+      console.log( global_picker.find( [ e.clientX, e.clientY ] ) ); } } ) (this), false );
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {

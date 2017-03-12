@@ -69,15 +69,22 @@ Declare_Any_Class( "Picker",
 	},
 	'find'			: function( coords )
 	{
+		var x_offset = canvas.offsetLeft;	// Determine x offset of the canvas on the browser window
+		var y_offset = canvas.offsetTop;	// y offset of canvas
+		console.log( "You clicked canvas coords: " );
+		console.log( [(coords[0] - x_offset), (coords[1] - y_offset)] );
+
 		// read one pixel
 		var readout = new Uint8Array( 1 * 1 * 4 );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, this.framebuffer );
-		gl.readPixels( coords.x, coords.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
+		gl.readPixels( coords[0] - x_offset, coords[1] - y_offset, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, null );
+		console.log( "Pixel color: " );
+		console.log( readout );
 
 		var found = false;
 
-		if ( this.hitPropertyCallback == undefined ) { alert( 'The picker needs an object property to perform the comparison' ); return; }
+		if ( this.hitPropertyCallback == undefined ) { console.log( 'The picker needs an object property to perform the comparison' ); return; }
 
 		// TODO
 		for ( var i = 0; i < shapes_in_use.length; i++ ) 
