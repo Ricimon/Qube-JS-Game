@@ -4,10 +4,11 @@ Declare_Any_Class( "Picker",
 	{
 		this.define_data_members( {
 			plist					: [],
-			canvas					: canvas,
-			pickTexture				: null,
+			canvas					: canvas,	// current canvas
+			pickTexture				: null,		// WebGL 2D Texture
 			framebuffer 			: null,
 			renderbuffer 			: null,
+			pickedLocation			: -1, 		// Stores the current location that is picked
 
 			processHitsCallback 	: null,
 			addHitCallback 			: null,
@@ -137,5 +138,13 @@ Declare_Any_Class( "Picker",
 			this.processHitsCallback( this.plist );
 		}
 		this.plist = [];
+	},
+	'setPickLocation'	: function ( location )
+	{
+		this.pickedLocation = location;
+	},
+	'getPickLocation'	: function()
+	{
+		return this.pickedLocation;
 	}
 }, Animation );

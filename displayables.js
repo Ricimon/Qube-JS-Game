@@ -116,7 +116,7 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4(), blockman_loc : 1 } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
 		
 		    global_picker = this.picker;	// experimental
 		
@@ -154,15 +154,16 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "l",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,.1) )} );
 		    controls.add( "u",     this, function() { this.blockman.curIndex++; } );
         controls.add( "y",     this, function() { this.blockman.curIndex--; } ); 
-		    var picker = this.picker;
 		
 		    this.mouse = { "from_center": vec2() };
 		    var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
           if (currentScene == 0) currentScene = 1;
-          var canvasCoords = global_picker.getCanvasCoords( e );
-          console.log( this.blockman_loc = global_picker.find( canvasCoords ) ); } } ) (this), false );
+          var canvasCoords = global_picker.getCanvasCoords( e );      // get the canvas coords from mouse click with origin set to canvas bottom left
+          var blockman_loc = -1;
+          console.log( blockman_loc = global_picker.find( canvasCoords ) );   // try to find the input coordinates on an existing path
+          global_picker.setPickLocation( blockman_loc ); } } ) (this), false );   // update the picking location to be passed to a move function later on
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
@@ -344,7 +345,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if (!pickFrame)
 			{
                 //model_transform = translation( -6, 1.4, 8 );
-                this.blockman.moveTo(this.blockman_loc);
+                // console.log( this.blockman_loc );
+                this.blockman.moveTo( global_picker.getPickLocation() );
                 model_transform = this.blockman.where();
                 model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
                 shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
