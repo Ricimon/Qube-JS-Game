@@ -22,13 +22,13 @@ Declare_Any_Class( "Blockman",
                 altBlocks: {}
             } );   
     },
-    "addBlock": function( transform, length, axis, blockName, alt = false ) {
+    "addBlock": function( transform, length, axis, alt = false ) {
         let dict = this.blocks; //if not alt
         if( alt ){
             dict = this.altBlocks;
         }
         
-        dict[blockName] = {
+        dict["changeLater"] = {
             "length": length,
             "transform": transform,
             "connections": {},

@@ -186,7 +186,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				return false;
 		}, this );
 	  },
-	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame, name )
+	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame)
 	  {
 		var graphics_state  = this.shared_scratchpad.graphics_state;
 		
@@ -225,7 +225,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		}
         
         if( this.firstFrame ) { //only during the first frame so transform List has one of each value
-            this.blockman.addBlock(model_transform, rectLength, rectDirection, name);
+            this.blockman.addBlock(model_transform, rectLength, rectDirection);
         }
 		return model_transform;
 	  },
