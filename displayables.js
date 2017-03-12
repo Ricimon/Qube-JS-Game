@@ -312,7 +312,6 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             if (this.firstFrame){
                 this.firstFrame = false;
             }
-<<<<<<< HEAD
             //model_transform = this.blockman.where(); //the future
             model_transform = mult( model_transform, this.cubeman_transform ); //give offset from mouse commands for testing 
             shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
@@ -320,10 +319,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		case 2:	// level 2
 			
 			break;
-=======
             this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
-      // console.log( shapes_in_scene );
->>>>>>> alex-picking
 		}
       }
   }, Animation );
