@@ -69,30 +69,27 @@ Declare_Any_Class( "Picker",
 	},
 	'find'			: function( coords )	// returns index of a cube at specified canvas coordinates, -1 if no index matches
 	{
-		var x_offset = canvas.offsetLeft;	// Determine x offset of the canvas on the browser window
-		var y_offset = canvas.offsetTop;	// y offset of canvas
-		console.log( "You clicked canvas coords: " );
-		console.log( [(coords[0] - x_offset), canvas.height - (coords[1] - y_offset)] );
 
 		// read one pixel
 		var readout = new Uint8Array( 1 * 1 * 4 );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, this.framebuffer );
-		gl.readPixels( coords[0] - x_offset, canvas.height - (coords[1] - y_offset), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
+		gl.readPixels( coords[0], coords[1], 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, null );
 		console.log( "Corresponding pixel color: " );
 		console.log( readout );
 
-		var found = -1;
+		var matching_idx = -1;
 
 		for ( var i = 0; i < shapes_in_scene.length; i++ )
 		{
 			if ( this._compare( readout, shapes_in_scene[i] ) ) 
 			{
-				found = i;
-				console.log("Found matching index: " + found);
+				matching_idx = i;
+				console.log("Found matching index: " + matching_idx);
+				return matching_idx;
 			}
 		}
-		return found;
+		return matching_idx;
 
 		// if ( this.hitPropertyCallback == undefined ) { console.log( 'The picker needs an object property to perform the comparison' ); return; }
 
@@ -122,6 +119,17 @@ Declare_Any_Class( "Picker",
 		// }
 		// draw();
 		// return found;
+	},
+	'getCanvasCoords'	: function( event )			// returns canvas coordinates from event input
+	{
+		var mouseX = event.clientX, mouseY = event.clientY;
+		var x_offset = canvas.offsetLeft;			// Determine x offset of the canvas on the browser window
+		var y_offset = canvas.offsetTop;			// y offset of canvas
+		var x = mouseX - x_offset;
+		var y = canvas.height - ( mouseY - y_offset );
+		console.log( "You clicked canvas coords: " );
+		console.log( [ x , y ] );
+		return [ x, y ];
 	},
 	'stop'			: function()
 	{

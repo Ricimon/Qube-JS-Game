@@ -118,7 +118,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
       { this.shared_scratchpad = context.shared_scratchpad;
         this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4(), blockman_loc : 1 } );
 		
-		global_picker = this.picker;	// experimental
+		    global_picker = this.picker;	// experimental
 		
 		// Unused shapes are commented out(jk)
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
@@ -126,9 +126,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         shapes_in_use.bad_tetrahedron = new Tetrahedron( false );      // For example we'll only create one "cube" blueprint in the GPU, but we'll re-use
         shapes_in_use.tetrahedron     = new Tetrahedron( true );      // it many times per call to display to get multiple cubes in the scene.
         shapes_in_use.windmill        = new Windmill( 10 );
-		shapes_in_use.cube			  = new Cube();
-		shapes_in_use.sphere		  = new Sphere(50,50);
-		shapes_in_use.cylinder		  = new Capped_Cylinder(50,50);
+		    shapes_in_use.cube			  = new Cube();
+		    shapes_in_use.sphere		  = new Sphere(50,50);
+		    shapes_in_use.cylinder		  = new Capped_Cylinder(50,50);
         
         shapes_in_use.triangle_flat        = Triangle.prototype.auto_flat_shaded_version();
         shapes_in_use.strip_flat           = Square.prototype.auto_flat_shaded_version();
@@ -144,29 +144,25 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+g", this, function() { this.shared_scratchpad.graphics_state.gouraud       ^= 1; } );   // Make the keyboard toggle some
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
-		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
-		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
-		controls.add( "n"    , this, function() { currentScene++; shapes_in_scene = []; this.assignedPickColors = false; } );	// advance scene
+		    controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
+		    controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
+		    controls.add( "n"    , this, function() { currentScene++; shapes_in_scene = []; this.assignedPickColors = false; } );	// advance scene
         
         controls.add( "i",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} );
         controls.add( "j",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} );
         controls.add( "k",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} );
         controls.add( "l",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,.1) )} );
-		controls.add( "u",     this, function() { this.blockman.curIndex++; } );
+		    controls.add( "u",     this, function() { this.blockman.curIndex++; } );
         controls.add( "y",     this, function() { this.blockman.curIndex--; } ); 
-		var picker = this.picker;
+		    var picker = this.picker;
 		
-		this.mouse = { "from_center": vec2() };
-		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
+		    this.mouse = { "from_center": vec2() };
+		    var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
-			if (currentScene == 0) currentScene = 1;
-			var readout = new Uint8Array( 1 * 1 * 4 );
-			gl.bindFramebuffer( gl.FRAMEBUFFER, picker.framebuffer );
-			gl.readPixels( e.clientX, e.clientY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
-			gl.bindFramebuffer( gl.FRAMEBUFFER, null );
-			// console.log( readout );
-      console.log( this.blockman_loc = global_picker.find( [ e.clientX, e.clientY ] ) ); } } ) (this), false );
+          if (currentScene == 0) currentScene = 1;
+          var canvasCoords = global_picker.getCanvasCoords( e );
+          console.log( this.blockman_loc = global_picker.find( canvasCoords ) ); } } ) (this), false );
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
