@@ -115,7 +115,7 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman("initial1", 0), cubeman_transform: mat4() } );
 		
 		global_picker = this.picker;	// experimental
 		
@@ -184,7 +184,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				return false;
 		}, this );
 	  },
-	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame )
+	'draw_rectangle': function( model_transform, rectLength, rectDirection, pickFrame, name )
 	  {
 		var graphics_state  = this.shared_scratchpad.graphics_state;
 		
@@ -221,6 +221,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
 		}
+        
+        if( this.firstFrame ) { //only during the first frame so transform List has one of each value
+            this.blockman.addBlock(model_transform, rectLength, rectDirection, name);
+        }
 		return model_transform;
 	  },
     'display': function(time, pickFrame)
@@ -262,10 +266,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			
 			// Initial path
-			model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
-			model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
-			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
-			
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame, "initial1" );
+            var model_transform_decoration = model_transform;	// for later
+			model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame, "initial2" );
+			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame, "initial3" );
+            
 			// Movable path
 			var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
 			// Allow rotation of movable path w.r.t. time
@@ -274,15 +279,15 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if (this.pausable_time > 90) this.pausable_time = 90; if (this.pausable_time < 0) this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
 			
 			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
-			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
-			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
-			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
+			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work 
+			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame, "movable1" ); 
+			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame, "movable2" );
 			
 			// End path
 			model_transform = mult( translation( 22.6, 8-22.6, -12-22.6 ), model_transform );
-			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame );
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,0,-1), pickFrame, "end1" );
 			model_transform = mult( translation( 0, 0, 2 ), model_transform );
-			model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame );
+			model_transform = this.draw_rectangle( model_transform, 5, vec3(1,0,0), pickFrame, "end2" );
 			
 			// Decorations
 			model_transform_decoration = mult( translation( -1, 8, 1-.15 ), mult( model_transform_decoration, rotation( -90, 0, 1, 0 ) ) );
@@ -300,10 +305,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             
             //Cubeman
             if (this.firstFrame){
-                this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
                 this.firstFrame = false;
             }
-            this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
+            model_transform = this.blockman.where();
+            model_transform = mult( model_transform, this.cubeman_transform ); //give offset from mouse commands for testing 
+            this.draw_rectangle( model_transform, 1, vec3(0,0,-1), pickFrame );
 		}
       }
   }, Animation );
