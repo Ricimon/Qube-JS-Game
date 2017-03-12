@@ -61,57 +61,67 @@ Declare_Any_Class( "Picker",
 		gl.bindRenderbuffer( gl.RENDERBUFFER, this.renderbuffer );
 		gl.renderbufferStorage( gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height );
 	},
-	'_compare'		: function( readout, color )
+	'_compare'		: function( readout, color )	// returns true if two input colors match
 	{
 		return (Math.abs(Math.round(color[0]*255) - readout[0]) <= 1 &&
 			Math.abs(Math.round(color[1]*255) - readout[1]) <= 1 && 
 			Math.abs(Math.round(color[2]*255) - readout[2]) <= 1);
 	},
-	'find'			: function( coords )
+	'find'			: function( coords )	// returns index of a cube at specified canvas coordinates, -1 if no index matches
 	{
 		var x_offset = canvas.offsetLeft;	// Determine x offset of the canvas on the browser window
 		var y_offset = canvas.offsetTop;	// y offset of canvas
 		console.log( "You clicked canvas coords: " );
-		console.log( [(coords[0] - x_offset), (coords[1] - y_offset)] );
+		console.log( [(coords[0] - x_offset), canvas.height - (coords[1] - y_offset)] );
 
 		// read one pixel
 		var readout = new Uint8Array( 1 * 1 * 4 );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, this.framebuffer );
-		gl.readPixels( coords[0] - x_offset, coords[1] - y_offset, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
+		gl.readPixels( coords[0] - x_offset, canvas.height - (coords[1] - y_offset), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
 		gl.bindFramebuffer( gl.FRAMEBUFFER, null );
-		console.log( "Pixel color: " );
+		console.log( "Corresponding pixel color: " );
 		console.log( readout );
 
-		var found = false;
+		var found = -1;
 
-		if ( this.hitPropertyCallback == undefined ) { console.log( 'The picker needs an object property to perform the comparison' ); return; }
-
-		// TODO
-		for ( var i = 0; i < shapes_in_use.length; i++ ) 
+		for ( var i = 0; i < shapes_in_scene.length; i++ )
 		{
-			var ob = shapes_in_use[i];
-			var property = this.hitPropertyCallback(ob);
-
-			if ( property == undefined ) continue;
-
-			if (this._compare( readout, property ) )
+			if ( this._compare( readout, shapes_in_scene[i] ) ) 
 			{
-				var index = this.plist.indexOf(ob);
-				if ( index != -1 )
-				{
-					this.plist.splice( index, 1 );
-					if ( this.removeHitCallback ) this.removeHitCallback( ob );
-				}
-				else
-				{
-					this.plist.push(ob);
-					if ( this.addHitCallback ) this.addHitCallback( ob );
-				}
+				found = i;
+				console.log("Found matching index: " + found);
 			}
-			found = true;
 		}
-		draw();
 		return found;
+
+		// if ( this.hitPropertyCallback == undefined ) { console.log( 'The picker needs an object property to perform the comparison' ); return; }
+
+		// // TODO
+		// for ( var i = 0; i < shapes_in_use.length; i++ ) 
+		// {
+		// 	var ob = shapes_in_use[i];
+		// 	var property = this.hitPropertyCallback(ob);
+
+		// 	if ( property == undefined ) continue;
+
+		// 	if (this._compare( readout, property ) )
+		// 	{
+		// 		var index = this.plist.indexOf(ob);
+		// 		if ( index != -1 )
+		// 		{
+		// 			this.plist.splice( index, 1 );
+		// 			if ( this.removeHitCallback ) this.removeHitCallback( ob );
+		// 		}
+		// 		else
+		// 		{
+		// 			this.plist.push(ob);
+		// 			if ( this.addHitCallback ) this.addHitCallback( ob );
+		// 		}
+		// 	}
+		// 	found = true;
+		// }
+		// draw();
+		// return found;
 	},
 	'stop'			: function()
 	{

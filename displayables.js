@@ -168,8 +168,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
 		// TODO: FIX BUG WITH THESE TWO LINES+
-        // user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
-        // user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
+        user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( this.shared_scratchpad.graphics_state.animation_time )/1000 + "s";
+        user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
 	'reset_scene': function()
 	  {
@@ -209,9 +209,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				}
 				else {
 					var currentColor = shapes_in_scene[this.objIndex];
+          // var currentColor = shapes_in_scene[i];
 					r = currentColor[0];
 					g = currentColor[1];
 					b = currentColor[2];
+          // console.log( currentColor );
 				}
 				
 				var objColor = new Material( Color( r, g, b ), 1, 0, 0, 1 );
@@ -310,6 +312,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             if (this.firstFrame){
                 this.firstFrame = false;
             }
+<<<<<<< HEAD
             //model_transform = this.blockman.where(); //the future
             model_transform = mult( model_transform, this.cubeman_transform ); //give offset from mouse commands for testing 
             shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
@@ -317,6 +320,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		case 2:	// level 2
 			
 			break;
+=======
+            this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
+      // console.log( shapes_in_scene );
+>>>>>>> alex-picking
 		}
       }
   }, Animation );
