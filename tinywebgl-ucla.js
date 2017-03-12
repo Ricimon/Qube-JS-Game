@@ -4,7 +4,7 @@
 var shapes_in_use = [], shaders_in_use = [], textures_in_use = [], active_shader, texture_filenames_to_load = [], gl, g_addrs;    // ****** GLOBAL VARIABLES *******
 var shapes_in_scene = [];
 var backR = 39/255, backG = 46/255, backB = 54/255;
-var viewSize = 20, title = true;
+var viewSize = 20, currentScene = 0;
 
 function Declare_Any_Class( name, methods, superclass = Object, scope = window )              // Making javascript behave more like Object Oriented C++
   {
@@ -46,7 +46,7 @@ Declare_Any_Class( "Shape",
         for( var i = 0; i < 4; i++ )      // Memory addresses of the buffers given to this shape in the graphics card.
         { this.graphics_card_buffers.push( gl.createBuffer() );
           gl.bindBuffer(gl.ARRAY_BUFFER, this.graphics_card_buffers[i] );
-		  if (!title) { gl.bindFramebuffer( gl.FRAMEBUFFER, global_picker.framebuffer ); global_picker.update() }	// experimental
+		  if (currentScene != 0) { gl.bindFramebuffer( gl.FRAMEBUFFER, global_picker.framebuffer ); global_picker.update() }	// experimental
           switch(i) {
             case 0: gl.bufferData(gl.ARRAY_BUFFER, flatten(this.positions), gl.STATIC_DRAW); break;
             case 1: gl.bufferData(gl.ARRAY_BUFFER, flatten(this.normals), gl.STATIC_DRAW); break;

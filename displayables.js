@@ -106,7 +106,8 @@ Declare_Any_Class( "Camera",     // Displayable object that our class Canvas_Man
           // var velocity = ( ( offset_minus[i] > 0 && offset_minus[i] ) || ( offset_plus[i] < 0 && offset_plus[i] ) ) * degrees_per_frame;  // Use movement's quantity unless the &&'s zero it out
           // this.graphics_state.camera_transform = mult( rotation( velocity, i, 1-i, 0 ), this.graphics_state.camera_transform );     // On X step, rotate around Y axis, and vice versa.
         // }     // Now apply translation movement of the camera, in the newest local coordinate frame
-        this.graphics_state.camera_transform = mult( translation( scale_vec( meters_per_frame, this.thrust ) ), this.graphics_state.camera_transform );
+        if (currentScene > 0)
+			this.graphics_state.camera_transform = mult( translation( scale_vec( meters_per_frame, this.thrust ) ), this.graphics_state.camera_transform );
       }
   }, Animation );
 
@@ -144,10 +145,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
-        controls.add( "i",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,.1,0) )} } );
-        controls.add( "j",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} } );
-        controls.add( "k",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,-.1,0) )} } )
-        controls.add( "l",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} } )
+		controls.add( "n"    , this, function() { currentScene++;											} );	// advance scene
+        controls.add( "i",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} } );
+        controls.add( "j",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} } );
+        controls.add( "k",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} } )
+        controls.add( "l",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,.1) )} } )
 		
 		var picker = this.picker;
 		
@@ -155,7 +157,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
-			title = false;
+			if (currentScene == 0) currentScene = 1;
 			var readout = new Uint8Array( 1 * 1 * 4 );
 			gl.bindFramebuffer( gl.FRAMEBUFFER, picker.framebuffer );
 			gl.readPixels( e.clientX, e.clientY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, readout );
@@ -233,7 +235,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         graphics_state.lights = [];                    // First clear the light list each frame so we can replace & update lights.
 
         var t = graphics_state.animation_time/1000;
-        if (!pickFrame && !title) 
+        if (!pickFrame && currentScene == 1) 
         {
 			graphics_state.lights.push( new Light( vec4( -20, 20, 5, 1 ), Color( 1, 1, 1, 1 ), 1000000 ) );	// Light to create 3Dness
 			graphics_state.lights.push( new Light( vec4( -20+22.6, 20-22.6, 5-22.6, 1 ), Color( 1, 1, 1, 1 ), 80 ) );
@@ -253,12 +255,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         /**********************************
         Code for objects in world
         **********************************/                                     
-		if (title)	// title screen
+		switch(currentScene)
 		{
+		case 0:	// title screen
 			shapes_in_use.strip.draw( graphics_state, scale(viewSize,viewSize,1), titleScreen );
-		}
-		else
-		{
+			break;
+		case 1:	// level 1
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			
 			// Initial path
@@ -299,11 +301,16 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.objIndex = 0;
             
             //Cubeman
+			model_transform = translation( -6, 1.4, 8 );
             if (this.firstFrame){
                 this.cubeman_transform = mult( model_transform, translation(0,0,-1) ); 
                 this.firstFrame = false;
             }
-            this.draw_rectangle( this.cubeman_transform, 1, vec3(0,0,-1), pickFrame );
+            shapes_in_use.cube.draw( graphics_state, mult( this.cubeman_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
+			break;
+		case 2:	// level 2
+			
+			break;
 		}
       }
   }, Animation );
