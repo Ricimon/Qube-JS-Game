@@ -60,14 +60,13 @@ Declare_Any_Class( "Blockman",
             this.moves = [];
         
         let model_transform = this.blocks[this.curIndex];
-        model_transform = mult( model_transform, translation(0, 1.5, 0) );
         if ( this.moves.length ) { //if should move
             let destination = this.moves[this.moves.length-1]; //destination is Index to move to
             if ( this.curMoveMatrix == null ) {
-                let difference = subtract(this.blocks[this.curIndex], this.blocks[destination]);
+                let difference = subtract(this.blocks[destination], this.blocks[this.curIndex]);
                 difference.map( ele => {
-                    if(ele)
-                        return ele/10; //SPEED: do a speedth of the difference every frame
+                    if(ele != 0)
+                        return ele/1000000.0; //SPEED: do a speedth of the difference every frame
                     else
                         return ele;
                 } );
@@ -78,10 +77,11 @@ Declare_Any_Class( "Blockman",
             if ( equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
                 this.curIndex = destination;
                 this.curMoveMatrix = null;
-                this.curMatrixOffset = mat4([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]); 
+                this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]); 
                 this.moves.pop();
             }
         }
+        model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },
