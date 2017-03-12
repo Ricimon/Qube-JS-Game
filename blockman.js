@@ -22,7 +22,11 @@ Declare_Any_Class( "Blockman",
         this.blocks[blockNumber] = transform;
     },
     "moveTo": function(blockIndex){
+        //return if already moving there
+        if( blockIndex == this.moves[0] )
+            return
         //clear the moves stack
+        console.log("MoveTo Called");
         this.moves = [];
         //find the blockIndex in one of the connection arrays of the current State
         let fromConnectionIndex = null;
@@ -40,6 +44,8 @@ Declare_Any_Class( "Blockman",
                     else 
                         for ( let x = fromConnectionIndex; x <= toConnectionIndex; x++) 
                             this.moves.push(x);
+                    //TMP
+                    this.curIndex = blockIndex;
                 }
                 else
                     console.log(blockIndex, " is unreachable from your current location");
