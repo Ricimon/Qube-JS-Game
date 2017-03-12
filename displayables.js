@@ -116,19 +116,20 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, anim_time: 0, padTriggered: false,
+									firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
 		
-		    global_picker = this.picker;	// experimental
+		global_picker = this.picker;	// experimental
 		
-		    // Unused shapes are commented out(jk)
+		// Unused shapes are commented out(jk)
         shapes_in_use.triangle        = new Triangle();                  // At the beginning of our program, instantiate all shapes we plan to use,
         shapes_in_use.strip           = new Square();                   // each with only one instance in the graphics card's memory.
         shapes_in_use.bad_tetrahedron = new Tetrahedron( false );      // For example we'll only create one "cube" blueprint in the GPU, but we'll re-use
         shapes_in_use.tetrahedron     = new Tetrahedron( true );      // it many times per call to display to get multiple cubes in the scene.
         shapes_in_use.windmill        = new Windmill( 10 );
-		    shapes_in_use.cube			  = new Cube();
-		    shapes_in_use.sphere		  = new Sphere(50,50);
-		    shapes_in_use.cylinder		  = new Capped_Cylinder(50,50);
+		shapes_in_use.cube			  = new Cube();
+		shapes_in_use.sphere		  = new Sphere(50,50);
+		shapes_in_use.cylinder		  = new Capped_Cylinder(50,50);
         
         shapes_in_use.triangle_flat        = Triangle.prototype.auto_flat_shaded_version();
         shapes_in_use.strip_flat           = Square.prototype.auto_flat_shaded_version();
@@ -144,22 +145,29 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+g", this, function() { this.shared_scratchpad.graphics_state.gouraud       ^= 1; } );   // Make the keyboard toggle some
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
-		    controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
-		    controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
-		    controls.add( "n"    , this, function() { currentScene++; shapes_in_scene = []; this.assignedPickColors = false; } );	// advance scene
+		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
+		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
+		controls.add( "g"    , this, function() { this.padTriggered					                = true; } );
+		controls.add( "n"    , this, function() {
+													currentScene++; 
+													shapes_in_scene = []; 
+													this.assignedPickColors = false; 
+													this.moved = false; 
+													this.pausable_time = 0; 
+												} );	// advance scene
         
         controls.add( "i",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} );
         controls.add( "j",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} );
         controls.add( "k",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} );
         controls.add( "l",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,.1) )} );
-		    controls.add( "u",     this, function() { this.blockman.curIndex++; } );
+		controls.add( "u",     this, function() { this.blockman.curIndex++; } );
         controls.add( "y",     this, function() { this.blockman.curIndex--; } ); 
 		
-		    this.mouse = { "from_center": vec2() };
-		    var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
+		this.mouse = { "from_center": vec2() };
+		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         //canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
-          if (currentScene == 0) currentScene = 1;
+		if (currentScene == 0) currentScene = 1;
           var canvasCoords = global_picker.getCanvasCoords( e );      // get the canvas coords from mouse click with origin set to canvas bottom left
           var blockman_loc = -1;
           console.log( blockman_loc = global_picker.find( canvasCoords ) );   // try to find the input coordinates on an existing path
@@ -274,7 +282,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			lightBlue	      = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), .15, .7,  0, 10 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
 			brownOrange       = new Material( Color( 0.6    , 0.251  , 0.137  , 1 ), .15, .7, .3, 90 ),
 			lightRed      	  = new Material( Color( 1	    , 0.5    , 0.5    , 1 ), .15, .9,  0, 70 ),
+			darkGreen     	  = new Material( Color( 0.5    , 1      , 0.5    , 1 ), .15, .9,  0, 70 ),
 			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .7,  0, 40 ),
+			darkTan			  = new Material( Color( 180/255, 150/255, 110/255, 1 ), 1,   .7,  0, 40 ),
 			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), 1,   .5,  0, 40 ),
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
@@ -301,7 +311,13 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			// Allow rotation of movable path w.r.t. time
 			if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
 			if (!this.moved && this.pausable_time > 0) this.pausable_time -= graphics_state.animation_delta_time / 30;
-			if (this.pausable_time > 90) this.pausable_time = 90; if (this.pausable_time < 0) this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
+			if (this.pausable_time >= 90) {
+				this.pausable_time = 90;
+				this.blockman.changeState("rotated");
+			}
+			else
+				this.blockman.changeState("original");
+			if (this.pausable_time < 0)	this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
 			
 			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
 			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
@@ -345,7 +361,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if (!pickFrame)
 			{
                 //model_transform = translation( -6, 1.4, 8 );
-                // console.log( this.blockman_loc );
+				// console.log( this.blockman_loc );
                 this.blockman.moveTo( global_picker.getPickLocation() );
                 model_transform = this.blockman.where();
                 model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
@@ -353,13 +369,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			}
 			break;
 		case 2:	// level 2
-			graphics_state.camera_transform = mult( translation(0, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
+			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			graphics_state.projection_transform = ortho( -(viewSize+5), viewSize+5, -(viewSize+5)/(canvas.width/canvas.height), (viewSize+5)/(canvas.width/canvas.height), 0.1, 1000)
 			
 			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 100, -100, -100 ) ), scale( 100, 100, 100 ) ), emissiveLightBlue );	// janky background
 			
 			shapes_in_use.cube.draw( graphics_state, scale(5,5,5), tan );
 			
+			// Initial path
 			model_transform = translation( -4, -1.6, 6 );
 			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 1, vec3(-1,0,0), pickFrame );
 			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
@@ -368,10 +385,63 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = this.draw_rectangle( model_transform, 5, vec3(0,1,0), pickFrame );
 			model_transform = this.draw_rectangle( model_transform, 4, vec3(1,-.2,0), pickFrame );
 			
+			// Movable path
 			var model_transform_move = translation( 0, 6, 0 );
+			if (this.moved) this.pausable_time += graphics_state.animation_delta_time / 30;
+			
+			model_transform_move = mult( model_transform_move, rotation( this.pausable_time, 0, 1, 0 ) );
+			
 			this.draw_rectangle( mult( model_transform_move, scale( 5, 1, 5 ) ), 1, vec3(0,1,0), pickFrame, pink );
 			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
 			this.draw_rectangle( model_transform_move, 4, vec3(0,0,-1), pickFrame );
+			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
+			// model_transform_move = mult( model_transform_move, rotation( 0, 0, 1, 0 ) );
+			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,1,0), pickFrame );
+			this.draw_rectangle( model_transform_move, 4, vec3(1,0,0), pickFrame );
+			
+			// Fixed path
+			model_transform = translation( 0, 8, 8 );
+			this.draw_rectangle( model_transform, 7, vec3(0,-1,0), pickFrame, darkTan );
+			model_transform = mult( translation( 0, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
+			if (!pickFrame)
+				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), darkGreen );
+			
+			model_transform = translation( 8, 8, 0 );
+			model_transform = this.draw_rectangle( model_transform, 1, vec3(1,0,0), pickFrame, tan );
+			var moveMag = 14;
+			model_transform = mult( model_transform, translation( -moveMag, moveMag, moveMag ) );
+			shapes_in_use.strip.draw( graphics_state, mult( model_transform, translation( 0, 0, 1 ) ), tan );
+			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 0, 1, 0 ) ), rotation( -90, 1, 0, 0 ) ), tan );
+			model_transform = mult( model_transform, translation( 2, 0, 0 ) );
+			model_transform = this.draw_rectangle( model_transform, 2, vec3(1,0,0), pickFrame, tan );
+			
+			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
+			
+			if (this.padTriggered)
+			{
+				this.anim_time += graphics_state.animation_delta_time / 50;
+				// earthquake effect
+				if (this.anim_time < 2)
+					earthquake_shake = -.2;
+				else if (this.anim_time < 4 )
+					earthquake_shake = .2;
+				else if (this.anim_time < 6)
+					earthquake_shake = -.1;
+				else if (this.anim_time < 8)
+					earthquake_shake = .05;
+				else if (this.anim_time < 10)
+					earthquake_shake = -.05;
+				else if (this.anim_time < 12)
+					earthquake_shake = .05;
+				else
+					earthquake_shake = 0;
+				if (this.anim_time > 95) this.anim_time = 95;
+			}
+			
+			model_transform = mult( model_transform, rotation( this.anim_time > 5 ? -this.anim_time + 5 : 0, 1, 0, 0 ) );
+			model_transform = mult( model_transform, translation( 0, 2, 0 ) );
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,1,0), pickFrame, tan );
+			
 			
 			
 			this.assignedPickColors = true;
