@@ -8,9 +8,10 @@ Declare_Any_Class( "Blockman",
             { 
                 blocks: [], //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform 
                 curIndex: startingIndex,
+                curOffset: 0, //for smooth movement between indexes; between 0 and 1
                 curState: startingState,
                 speed: speedPerFrame,
-                states: {}, //will be dict containing all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
+                states: {}, //will be dict containing whether they allow movement all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
                 moves: [] //stack of moves crafted from moveTo
             } );   
     },
@@ -26,35 +27,47 @@ Declare_Any_Class( "Blockman",
         //find the blockIndex in one of the connection arrays of the current State
         let fromConnectionIndex = null;
         let toConnectionIndex = null;
-        for ( connections in this.states[this.curState] ){ //look in group of blocks in the curState
-            toConnectionIndex = connections.findIndex(blockIndex); 
-            if ( toConnectionIndex != -1){ //if this connections has block to look for
-                fromConnectionIndex = connections.findIndex(Math.round(this.curIndex));
+        connections = this.states[this.curState].connections;
+        for ( var i = 0; i < connections.length; i++ ){ //look in group of blocks in the curState
+            let connection = connections[i];
+            toConnectionIndex = connection.indexOf(blockIndex); 
+            if ( toConnectionIndex != -1){ //if this connection has block to look for
+                fromConnectionIndex = connection.indexOf(Math.round(this.curIndex));
                 if( fromConnectionIndex != -1){ //if this connection also has curBlock
                     if( toConnectionIndex < fromConnectionIndex ) //push all indices between the two indicies 
                         for ( let x = fromConnectionIndex; x >= toConnectionIndex; x--)
-                            moves.push(x);
+                            this.moves.push(x);
                     else 
                         for ( let x = fromConnectionIndex; x <= toConnectionIndex; x++) 
-                            moves.push(x);
+                            this.moves.push(x);
                 }
                 else
-                    console.log(blockIndex, " is unreachable");
-                break;
+                    console.log(blockIndex, " is unreachable from your current location");
+                return;
             }
         }
+        console.log(blockIndex, " is unreachable in general");
+        return;
     },
     "where": function(){
-        let model_transform = this.blocks[this.curIndex]
+        if( !this.states[this.curState].allowMovement )
+            this.moves = [];
+        
+        let model_transform = this.blocks[this.curIndex];
         model_transform = mult( model_transform, translation(0, 1.5, 0) );
+        if ( this.moves.length ) {
+            let destination = this.moves[this.moves.length-1];
+            let difference = subtract(this.blocks[this.curIndex], this.blocks[destination]);
+        }
         return model_transform;
-        //if in a rotating state, dont allow movement
-        //use the curBlock to search up the curBlock's model Transform
-        //use the blocks direction and the curIndex to place blockman in correct current location
         //move if move stack isnt empty popping movements as they are completed
-        //return the model_transform
     },
-    "addState": null,
+    "addState": function(name, connections, allowMovement = true) {
+        this.states[name] = {
+            "connections": connections,
+            "allowMovement": allowMovement
+        }
+    },
     "changeState": function( newState ){
         this.curState = newState;
     }

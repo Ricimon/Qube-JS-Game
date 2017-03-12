@@ -116,7 +116,7 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(0, null), cubeman_transform: mat4() } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
 		
 		global_picker = this.picker;	// experimental
 		
@@ -147,11 +147,13 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
 		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
 		controls.add( "n"    , this, function() { currentScene++; shapes_in_scene = []; this.assignedPickColors = false; } );	// advance scene
-        controls.add( "i",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} } );
-        controls.add( "j",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} } );
-        controls.add( "k",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} } )
-        controls.add( "l",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,.1) )} } )
-		
+        
+        controls.add( "i",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} );
+        controls.add( "j",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} );
+        controls.add( "k",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} );
+        controls.add( "l",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,.1) )} );
+		controls.add( "u",     this, function() { this.blockman.curIndex++; } );
+        controls.add( "y",     this, function() { this.blockman.curIndex--; } ); 
 		var picker = this.picker;
 		
 		this.mouse = { "from_center": vec2() };
@@ -333,12 +335,20 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.objIndex = 0;
             
             //Cubeman
+            if (this.firstFrame){
+                //record the two possible states and the indexes that are connected to each other
+                //20 is weird since its in block 15
+                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10], [15,20,21,22,23,24,25,26,27,28,29,30,31,32,33]]);
+                this.blockman.addState("rotating", [], false);
+                this.blockman.addState("rotated", [[0,1,2,3,4,5,6,7,8,9,10,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]]);                    
+                this.firstFrame = false;
+                this.blockman.moveTo(1);
+                if (this.blockman.moves.length)
+                    console.log(this.blockman.moves);
+            }                
 			if (!pickFrame)
 			{
                 //model_transform = translation( -6, 1.4, 8 );
-                if (this.firstFrame){
-                    this.firstFrame = false;
-                }
                 model_transform = this.blockman.where();
                 model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
                 shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
