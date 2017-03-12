@@ -145,7 +145,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
-		controls.add( "n"    , this, function() { currentScene++;											} );	// advance scene
+		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
+		controls.add( "n"    , this, function() { currentScene++; shapes_in_scene = []; this.assignedPickColors = false; } );	// advance scene
         controls.add( "i",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} } );
         controls.add( "j",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} } );
         controls.add( "k",     this, function() { if (!this.firstFrame) { this.cubeman_transform = mult( this.cubeman_transform, translation(-.1,0,0) )} } )
@@ -191,7 +192,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 	  {
 		var graphics_state  = this.shared_scratchpad.graphics_state;
 		
-		var lightBlue = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 );
+		var lightBlue = new Material( Color( 0.678, 0.847, 0.902, 1 ), .15, .7,  0, 10 ),
+			tan		  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1, .7,  0, 40 );
 		
 		for (var i = 0; i < rectLength; i++)
 		{
@@ -221,8 +223,19 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				shapes_in_use.cube.draw( graphics_state, model_transform, objColor );
 				this.objIndex++;
 			}
-			else if (currentScene == 1)
-				shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+			else 
+				switch (currentScene)
+				{
+				case 1:
+					shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+					break;
+				case 2:
+					if (arguments[4] == null)
+						shapes_in_use.cube.draw( graphics_state, model_transform, tan );
+					else
+						shapes_in_use.cube.draw( graphics_state, model_transform, arguments[4] );
+					break;
+				}
 			
 			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
 		}
@@ -230,18 +243,6 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             this.blockman.addBlock(model_transform, rectLength, rectDirection);
         }
 		return model_transform;
-	  },
-	'draw_visible_rectangle': function( model_transform, scaleY )
-	  {
-		var graphics_state  = this.shared_scratchpad.graphics_state;
-		
-		var tan		 = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1, .5,  0, 40 ),
-			darkTan	 = new Material( Color( 170/255, 140/255, 100/255, 1 ), 1, .5,  0, 40 ),
-			lightTan = new Material( Color( 240/255, 210/255, 170/255, 1 ), 1, .5,  0, 40 );
-			
-		shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 0, 1-scaleY, 1 ) ), scale( 1, scaleY, 1 ) ), tan );
-		shapes_in_use.strip.draw( graphics_state, mult( mult( mult( model_transform, translation( 0, 1, 0 ) ), rotation( 90, 1, 0, 0 ) ), scale( 1, 1, 1 ) ), lightTan );
-		shapes_in_use.strip.draw( graphics_state, mult( mult( mult( model_transform, translation( -1, 1-scaleY, 0 ) ), rotation( 90, 0, 1, 0 ) ), scale( 1, scaleY, 1 ) ), darkTan );
 	  },
     'display': function(time, pickFrame)
       {	
@@ -262,7 +263,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			}
 			if (currentScene == 2)
 			{
-				graphics_state.lights.push( new Light( vec4( 0, 0, 10, 1 ), Color( 0, 1, 0, 1 ), 15 ) );	
+				graphics_state.lights.push( new Light( vec4( 0, 700, 200, 1 ), Color( 1, 1, 1, 1 ), 300000 ) );	
 			}
 		}
 
@@ -272,9 +273,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			lightBlue	      = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), .15, .7,  0, 10 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
 			brownOrange       = new Material( Color( 0.6    , 0.251  , 0.137  , 1 ), .15, .7, .3, 90 ),
 			lightRed      	  = new Material( Color( 1	    , 0.5    , 0.5    , 1 ), .15, .9,  0, 70 ),
-			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .5,  0, 40 ),
-			darkTan			  = new Material( Color( 170/255, 140/255, 100/255, 1 ), 1,   .5,  0, 40 ),
-			lightTan		  = new Material( Color( 240/255, 210/255, 170/255, 1 ), 1,   .5,  0, 40 ),
+			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .7,  0, 40 ),
+			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), 1,   .5,  0, 40 ),
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
@@ -331,13 +331,16 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.objIndex = 0;
             
             //Cubeman
-			model_transform = translation( -6, 1.4, 8 );
-            if (this.firstFrame){
-                this.firstFrame = false;
-            }
-            //model_transform = this.blockman.where(); //the future
-            model_transform = mult( model_transform, this.cubeman_transform ); //give offset from mouse commands for testing 
-            shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
+			if (!pickFrame)
+			{
+				model_transform = translation( -6, 1.4, 8 );
+				if (this.firstFrame){
+					this.firstFrame = false;
+				}
+				//model_transform = this.blockman.where(); //the future
+				model_transform = mult( model_transform, this.cubeman_transform ); //give offset from mouse commands for testing 
+				shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
+			}
 			break;
 		case 2:	// level 2
 			graphics_state.camera_transform = mult( translation(0, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
@@ -345,39 +348,24 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 100, -100, -100 ) ), scale( 100, 100, 100 ) ), emissiveLightBlue );	// janky background
 			
-			model_transform = translation( 0, 0, 5 );
-			shapes_in_use.strip.draw( graphics_state, mult( model_transform, scale( 5, 5, 5 ) ), tan );
-			model_transform = translation( -5, 0, 0 );
-			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, scale( 5, 5, 5 ) ), rotation( 90, 0, 1, 0 ) ), darkTan );
-			model_transform = translation( 0, 5, 0 );
-			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, scale( 5, 5, 5 ) ), rotation( 90, 1, 0, 0 ) ), lightTan );
+			shapes_in_use.cube.draw( graphics_state, scale(5,5,5), tan );
 			
-			model_transform = translation( -4, -2, 6 );
-			this.draw_visible_rectangle( model_transform, .2 );
+			model_transform = translation( -4, -1.6, 6 );
+			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 1, vec3(-1,0,0), pickFrame );
 			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
-			this.draw_visible_rectangle( model_transform, .2 );
-			for( var i = 1; i < 7; i++ )
-			{
-				model_transform = mult( model_transform, translation( 0, 0, -2 ) );
-				this.draw_visible_rectangle( model_transform, .2 );
-			}
-			model_transform = mult( model_transform, translation( 0, -4, -2 ) );
-			for ( var i = 0; i < 7; i++ )
-			{
-				model_transform = mult( model_transform, translation( 0, 2, 0 ) );
-				this.draw_visible_rectangle( model_transform, 1 );
-			}
-			for ( var i = 0; i < 2; i++ )
-			{
-				model_transform = mult( model_transform, translation( 2, 0, 0 ) );
-				this.draw_visible_rectangle( model_transform, 1 );
-			}
+			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 7, vec3(0,0,-1), pickFrame );
+			model_transform = mult( model_transform, translation( 0, 0.8, -14 ) );
+			model_transform = this.draw_rectangle( model_transform, 5, vec3(0,1,0), pickFrame );
+			model_transform = this.draw_rectangle( model_transform, 4, vec3(1,-.2,0), pickFrame );
 			
-			var movePath_transform = mult( model_transform, translation( 0, 0, 8 ) );
-			for ( var i = 0; i < 3; i++ )
-			{
-				return;
-			}
+			var model_transform_move = translation( 0, 6, 0 );
+			this.draw_rectangle( mult( model_transform_move, scale( 5, 1, 5 ) ), 1, vec3(0,1,0), pickFrame, pink );
+			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
+			this.draw_rectangle( model_transform_move, 4, vec3(0,0,-1), pickFrame );
+			
+			
+			this.assignedPickColors = true;
+			this.objIndex = 0;
 			break;
 		}
       }

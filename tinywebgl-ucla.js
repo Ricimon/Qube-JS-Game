@@ -4,7 +4,7 @@
 var shapes_in_use = [], shaders_in_use = [], textures_in_use = [], active_shader, texture_filenames_to_load = [], gl, g_addrs;    // ****** GLOBAL VARIABLES *******
 var shapes_in_scene = [];
 var backR = 39/255, backG = 46/255, backB = 54/255;
-var viewSize = 20, currentScene = 0;
+var viewSize = 20, currentScene = 0, seePickingColors = false;
 
 function Declare_Any_Class( name, methods, superclass = Object, scope = window )              // Making javascript behave more like Object Oriented C++
   {
@@ -280,7 +280,7 @@ Declare_Any_Class( "Canvas_Manager",                      // This class performs
 		
         for( var i = 0; i < this.displayables.length; i++ )
         {
-          this.displayables[ i ].display( time, false );                                 // Draw each registered displayable.
+          this.displayables[ i ].display( time, seePickingColors );                                 // Draw each registered displayable.
           this.displayables[ i ].update_strings( this.shared_scratchpad );
         }
         window.requestAnimFrame( this.render.bind( this ) );      // Now that this frame is drawn, request that it happen again as soon as all other OpenGL events are processed.
