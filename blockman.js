@@ -116,6 +116,12 @@ Declare_Any_Class( "Blockman",
     },
     "changeState": function( newState ){
         this.curState = newState;
+    },
+    "earthquake": function( ){
+        for (state in states){
+            for (connection in states[state].connections)
+                ;
+        }
     }
 });
                   

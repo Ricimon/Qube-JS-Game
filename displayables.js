@@ -548,6 +548,27 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration2, translation(-(1-.1),0,-(1-.1)) ), scale(.1,5,.1) ), tan );
 			}
 			
+            //Blockman
+            if (this.firstFrame){
+                //record the possible states and the indexes that are connected to each other
+                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
+                this.blockman.addState("rotating", [], false);
+                this.blockman.addState("rotated1",[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[41,40,39,21,20,19], [32], [28,29,30,31], [46, 47]]);
+                this.blockman.addState("rotated2", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[32,21,20,19], [39,40,41], [28,29,30,31], [46, 47]]);
+                this.blockman.addState("rotated3", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[21,20,19], [32], [39,40,41], [28,29,30,31,46, 47]]);
+                this.blockman.curIndex = 0;
+                this.firstFrame = false;
+            }                
+			if (!pickFrame)
+			{
+                //model_transform = translation( -6, 1.4, 8 );
+				// console.log( this.blockman_loc );
+                this.blockman.moveTo( global_picker.getPickLocation() )
+                isMoving = ( this.blockman.moves.length > 0 );
+                model_transform = this.blockman.where( graphics_state.animation_delta_time );
+                model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
+                shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
+			}
 			this.assignedPickColors = true;
 			this.objIndex = 0;
 			break;
