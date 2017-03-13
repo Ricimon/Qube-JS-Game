@@ -351,9 +351,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             if (this.firstFrame){
                 //record the two possible states and the indexes that are connected to each other
                 //20 is weird since its in block 15
-                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10], [15,20,21,22,23,24,25,26,27,28,29,30,31,32,33]]);
+                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10], [15,21,22,23,24,25,26,27,28,29,30,31,32,33]]);
                 this.blockman.addState("rotating", [], false);
-                this.blockman.addState("rotated", [[0,1,2,3,4,5,6,7,8,9,10,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]]);                    
+                this.blockman.addState("rotated", [[10,9,8,7,6,5,4,3,2,1,0,19,18,17,16,15,21,22,23,24,25,26,27,28,29,30,31,32,33]]);                    
                 this.firstFrame = false;
                 if (this.blockman.moves.length)
                     console.log(this.blockman.moves);

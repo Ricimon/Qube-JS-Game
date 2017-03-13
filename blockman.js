@@ -40,10 +40,10 @@ Declare_Any_Class( "Blockman",
                 if( fromConnectionIndex != -1){ //if this connection also has curBlock
                     if( toConnectionIndex < fromConnectionIndex ) //push all indices between the two indicies 
                         for ( let x = toConnectionIndex; x <= fromConnectionIndex; x++)
-                            this.moves.push(x);
+                            this.moves.push(connection[x]);
                     else 
                         for ( let x = toConnectionIndex; x > fromConnectionIndex; x--) 
-                            this.moves.push(x);
+                            this.moves.push(connection[x]);
                     //TMP
                     //this.curIndex = blockIndex;
                 }
@@ -68,6 +68,7 @@ Declare_Any_Class( "Blockman",
                     if(ele != 0)
                         return ele/1000000.0; //SPEED: do a speedth of the difference every frame
                     else
+                        console.log(destination);
                         return ele;
                 } );
                 this.curMoveMatrix = difference;
@@ -77,8 +78,9 @@ Declare_Any_Class( "Blockman",
             if ( equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
                 this.curIndex = destination;
                 this.curMoveMatrix = null;
-                this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]); 
-                this.moves.pop();
+                this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+                if ( this.moves.length > 1 ) //so it doesnt spam moveTo by trying to move to a space it is already at
+                    this.moves.pop();
             }
         }
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
