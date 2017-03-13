@@ -429,11 +429,28 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			// Movable path
 			var model_transform_move = translation( 0, 6, 0 );
-			if (this.moved) this.pausable_time += graphics_state.animation_delta_time / 30;
 
-      // Allow rotation of movable path w.r.t. mouse dragging and picking
-      if ( this.mouse.anchor && this.mouse.from_center && global_picker.getPickLocation() == 17) 
-        this.pausable_time -= handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
+			// Allow rotation of movable path w.r.t. mouse dragging and picking
+			if ( this.mouse.anchor && this.mouse.from_center && global_picker.getPickLocation() == 17) 
+			this.pausable_time -= handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
+			
+			// Automatically go to position if close enough
+			if (!this.mouse.anchor)
+			{
+				this.pausable_time = this.pausable_time % 360;
+				if (this.pausable_time < 0) this.pausable_time = 360 + this.pausable_time;
+				var dividedTime = this.pausable_time % 90;
+				if (dividedTime != 0)
+				{
+					if (dividedTime > 85)
+						this.pausable_time += graphics_state.animation_delta_time / 60;
+					if (dividedTime < 5)
+						this.pausable_time -= graphics_state.animation_delta_time / 60;
+				}
+				if (dividedTime > 89 || dividedTime < 1)
+					this.pausable_time = Math.floor(this.pausable_time);
+				
+			}
 			
 			// for updating blockman cubes' positions
 			var model_transform_blockman_cube = translation( 0, 8, 0 );
