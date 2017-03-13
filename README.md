@@ -4,9 +4,12 @@
 Qube
 ==========
 
-Jorge Fuentes
-Eric Qu
-Alex-Tien Tran
+----------
+Members
+----------
+- Jorge Fuentes
+- Eric Qu
+- Alex-Tien Tran
 
 ----------
 Introduction
@@ -42,6 +45,6 @@ Controls
 Group Responsibilities
 ----------
 
-Jorge Fuentes: pathfinding and movement
-Eric Qu: level design
-Alex-Tien Tran: mouse picking 
+- Jorge Fuentes: pathfinding and movement
+- Eric Qu: level design
+- Alex-Tien Tran: mouse picking 
