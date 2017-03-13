@@ -368,7 +368,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
                 //model_transform = translation( -6, 1.4, 8 );
 				// console.log( this.blockman_loc );
                 this.blockman.moveTo( global_picker.getPickLocation() );
-                model_transform = this.blockman.where();
+                model_transform = this.blockman.where( graphics_state.animation_delta_time );
                 model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
                 shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
 			}

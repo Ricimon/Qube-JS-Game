@@ -12,7 +12,8 @@ Declare_Any_Class( "Blockman",
                 curState: startingState,
                 states: {}, //will be dict containing whether they allow movement all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
                 moves: [], //stack of moves crafted from moveTo
-                curMoveMatrix: null
+                curMoveMatrix: null,
+                HundredthsperDt: 1 //what change in percentage between 2 blocks per dt
             } );   
     },
     "addBlock": function( transform ) {
@@ -55,23 +56,28 @@ Declare_Any_Class( "Blockman",
         console.log(blockIndex, " is unreachable in general");
         return;
     },
-    "where": function(){
+    "changeEveryElementOfMat": function(mat, ft){
+        let newMat = mat.map( array => { //for every array
+                    return array.map( ele => { //for every element in that array
+                       return Math.round(ft(ele)*100) / 100; //call the ft on it and round to the nearest hundreth
+                    });
+                } );
+        newMat = newMat[0].concat(newMat[1]).concat(newMat[2]).concat(newMat[3]); //combine all arrays in single d for proper entry into mat4()
+        return mat4(newMat); //turn new multiD array in a matrix
+    },
+    "where": function(dt){
         if( !this.states[this.curState].allowMovement )
             this.moves = [];
         
+        console.log(this.curIndex);
         let model_transform = this.blocks[this.curIndex];
         if ( this.moves.length ) { //if should move
             let destination = this.moves[this.moves.length-1]; //destination is Index to move to
             if ( this.curMoveMatrix == null ) {
                 let difference = subtract(this.blocks[destination], this.blocks[this.curIndex]);
-                difference.map( ele => {
-                    if(ele != 0)
-                        return ele/1000000.0; //SPEED: do a speedth of the difference every frame
-                    else
-                        console.log(destination);
-                        return ele;
-                } );
-                this.curMoveMatrix = difference;
+                this.curMoveMatrix = this.changeEveryElementOfMat(difference, ele => {
+                    return ele/20.0;
+                }); 
             }
             this.curMatrixOffset = add( this.curMatrixOffset, this.curMoveMatrix ); //store the continuous offset in curMatrixOffset
             model_transform = add( model_transform, this.curMatrixOffset );
