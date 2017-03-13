@@ -130,6 +130,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		shapes_in_use.cube			  = new Cube();
 		shapes_in_use.sphere		  = new Sphere(50,50);
 		shapes_in_use.cylinder		  = new Capped_Cylinder(50,50);
+		shapes_in_use.ladder		  = new Ladder();
         
         shapes_in_use.triangle_flat        = Triangle.prototype.auto_flat_shaded_version();
         shapes_in_use.strip_flat           = Square.prototype.auto_flat_shaded_version();
@@ -145,14 +146,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
 		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
-		controls.add( "g"    , this, function() { this.padTriggered					                = true; } );
-		controls.add( "n"    , this, function() {
-													currentScene++; 
-													shapes_in_scene = []; 
-													this.assignedPickColors = false; 
-													this.moved = false; 
-													this.pausable_time = 0; 
-												} );	// advance scene
+		controls.add( "g"    , this, function() { if(currentScene == 2) this.padTriggered	        = true; } );
+		controls.add( "n"    , this, function() { this.advance_scene()										} );	// advance scene
         
         controls.add( "i",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} );
         controls.add( "j",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(0,0,-.1) )} );
@@ -182,9 +177,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         user_interface_string_manager.string_map["time"]    = "Animation Time: " + Math.round( graphics_state.animation_time )/1000 + "s";
         user_interface_string_manager.string_map["animate"] = "Animation " + (this.shared_scratchpad.animate ? "on" : "off") ;
       },
-	'reset_scene': function()
+	'advance_scene': function()
 	  {
-		this.assignedPickColors = false;
+		currentScene++;
+		shapes_in_scene = []; 
+		this.assignedPickColors = false; 
+		this.moved = false; 
+		this.pausable_time = 0; 
+		this.firstFrame = true;
 	  },
 	'check_color_repeat': function( r, g, b )
 	  {
@@ -317,11 +317,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
 
 			// Allow rotation of movable path w.r.t. mouse dragging and picking
-      if ( this.blockman.curIndex < 15 || this.blockman.curIndex > 25 )
-      {
-  			if ( this.mouse.anchor && this.mouse.from_center && global_picker.getPickLocation() == 34) 
-  				this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
-      }
+			if ( this.blockman.curIndex < 15 || this.blockman.curIndex > 25 )
+			{
+				if ( this.mouse.anchor && this.mouse.from_center && global_picker.getPickLocation() == 34) 
+					this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
+			}
 
 			// Automatically go to either position if close enough
 			if ( !this.mouse.anchor )
@@ -410,6 +410,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
                 model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
                 shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
 			}
+			
+			// Advancing scene
+			if (this.blockman.curIndex == 33)
+				this.advance_scene();
+			
 			break;
 		case 2:	// level 2
 			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
@@ -427,6 +432,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
 			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 7, vec3(0,0,-1), pickFrame );
 			model_transform = mult( model_transform, translation( 0, 0.8, -14 ) );
+			if (!pickFrame)
+				for (var i = 0; i < 6; i++)
+				{
+					shapes_in_use.ladder.draw( graphics_state, mult( mult( model_transform, translation(0, 2*i, 1 ) ), scale( 1, 2, 1 ) ), brownOrange );
+				}
 			model_transform = this.draw_rectangle( model_transform, 5, vec3(0,1,0), pickFrame );
 			model_transform = this.draw_rectangle( model_transform, 4, vec3(1,-.2,0), pickFrame );
 			var model_transform_decoration = model_transform;	// for later

@@ -127,3 +127,20 @@ Declare_Any_Class( "Axis_Arrows",   // Made out of a lot of various primitives.
       Cylindrical_Tube.prototype.insert_transformed_copy_into( this, [ 7, 7 ], object_transform, 0 );
     }
 }, Shape )
+
+Declare_Any_Class( "Ladder",
+  { populate: function()  
+      { var cylinder_transform = rotation( 90, 0, 1, 0 );
+		var ladderSpacing = 0.25;
+		var temp_transform = mult( mult( cylinder_transform, translation( 0, -ladderSpacing, 0 ) ), scale(.1,.1,1) );
+		Capped_Cylinder.prototype.insert_transformed_copy_into( this, [7,7], temp_transform );
+		temp_transform = mult( mult( cylinder_transform, translation( 0, ladderSpacing, 0 ) ), scale(.1,.1,1) );
+		Capped_Cylinder.prototype.insert_transformed_copy_into( this, [7,7], temp_transform );
+		cylinder_transform = rotation( 90, 1, 0, 0 );
+		ladderSpacing = .5;
+		temp_transform = mult( mult( cylinder_transform, translation( ladderSpacing, 0, 0 ) ), scale(.1,.1,1) );
+		Capped_Cylinder.prototype.insert_transformed_copy_into( this, [7,7], temp_transform );
+		temp_transform = mult( mult( cylinder_transform, translation( -ladderSpacing, 0, 0 ) ), scale(.1,.1,1) );
+		Capped_Cylinder.prototype.insert_transformed_copy_into( this, [7,7], temp_transform );
+      } 
+}, Shape )
