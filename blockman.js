@@ -103,7 +103,8 @@ Declare_Any_Class( "Blockman",
             }
         }
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
-        model_transfrom = mult( model_transform, translation(-10, 10, 10) );
+        if( this.curIndex >= 15 )
+            model_transform = mult( model_transform, translation(-15, 15, 15) );
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },
