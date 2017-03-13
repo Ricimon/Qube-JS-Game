@@ -161,18 +161,18 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		controls.add( "u",     this, function() { this.blockman.curIndex++; } );
         controls.add( "y",     this, function() { this.blockman.curIndex--; } ); 
 		
-		    this.mouse = { "from_center": vec2() };
-		    var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
+		this.mouse = { "from_center": vec2() };
+		var mouse_position = function( e ) { return vec2( e.clientX - canvas.width/2, e.clientY - canvas.height/2 ); };
         canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
-          self.mouse.anchor = mouse_position( e );
-          if (currentScene == 0) currentScene = 1;
+		self.mouse.anchor = mouse_position( e );										  
+		if (currentScene == 0) currentScene = 1;
           var canvasCoords = global_picker.getCanvasCoords( e );      // get the canvas coords from mouse click with origin set to canvas bottom left
           var blockman_loc = -1;
           console.log( blockman_loc = global_picker.find( canvasCoords ) );   // try to find the input coordinates on an existing path
-          global_picker.setPickLocation( blockman_loc ); } } ) (this), false );   // update the picking location to be passed to a move function later
-        canvas.addEventListener( "mousemove", ( function(self) { return function(e) { e = e || window.event;    self.mouse.from_center = mouse_position(e); } } ) (this), false );
-        canvas.addEventListener( "mouseout",  ( function(self) { return function(e) { self.mouse.from_center = vec2(); }; } ) (this), false );    // Stop steering if the mouse leaves the canvas.
+          global_picker.setPickLocation( blockman_loc ); } } ) (this), false );   // update the picking location to be passed to a move function later on
+		  canvas.addEventListener( "mousemove", ( function(self) { return function(e) { e = e || window.event;    self.mouse.from_center = mouse_position(e); } } ) (this), false );
+		  canvas.addEventListener( "mouseout",  ( function(self) { return function(e) { self.mouse.from_center = vec2(); }; } ) (this), false );    // Stop steering if the mouse leaves the canvas.																																												  
       },
     'update_strings': function( user_interface_string_manager )       // Strings that this displayable object (Animation) contributes to the UI:
       {
@@ -235,7 +235,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				switch (currentScene)
 				{
 				case 1:
-					shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+					if (arguments[4] == null)
+						shapes_in_use.cube.draw( graphics_state, model_transform, lightBlue );
+					else
+						shapes_in_use.cube.draw( graphics_state, model_transform, arguments[4] );
 					break;
 				case 2:
 					if (arguments[4] == null)
@@ -290,6 +293,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), 1,   .5,  0, 40 ),
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
+			level2_background = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "level2_background.png"),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  0,  0, 40 );
 
         /**********************************
@@ -309,11 +313,11 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
 			
 			// Movable path
-      var movable_indices = [ 20, 21, 22, 23, 24, 25 ];
+			var movable_indices = [ 20, 21, 22, 23, 24, 25 ];										   
 			var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
 
-      // Allow rotation of movable path w.r.t. mouse dragging and picking
-      if ( this.mouse.anchor && this.mouse.from_center ) this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
+			// Allow rotation of movable path w.r.t. mouse dragging and picking
+			if ( this.mouse.anchor && this.mouse.from_center ) this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
 
 			// Allow rotation of movable path w.r.t. time
 			// if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
@@ -335,6 +339,23 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
 			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
 			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
+			
+			var model_transform_steering = mult( model_transform_move, translation( 0, 0, 3 ) );
+			if (!pickFrame)
+			{
+				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform_steering, scale(.2, .2, 6 ) ), lightBlue );
+				model_transform_steering = mult( model_transform_steering, translation( 0, 0, 3 ) );
+				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform_steering, scale( 1, 1, .4 ) ), lightBlue );
+				model_transform_steering = mult( model_transform_steering, rotation( 90, 1, 0, 0 ) );
+				for (var i = 0; i < 8; i ++)
+				{
+					model_transform_steering = mult( model_transform_steering, rotation( -45*i, 0, 1, 0 ) );
+					shapes_in_use.cylinder.draw( graphics_state, mult( mult( model_transform_steering, translation( 0, 0, 2 ) ), scale( .15, .15, 2 ) ), lightBlue );
+				}
+			}
+			model_transform_steering = mult( model_transform_move, translation( 0, 0, 6 ) );
+			// DRAWING THIS RECTANGLE WILL BE DONE AT THE END TO NOT MESS UP BLOCKMAN CODE
+			
 			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
 			
 			// End path
@@ -356,6 +377,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				model_transform = mult( translation( -2, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
 				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lightRed );
 			}
+			
+			// Picking steering wheel
+			this.draw_rectangle( mult( model_transform_steering, scale(3, 3, .2) ), 1, vec3(0,0,1), pickFrame, placeHolder );
 		
 			this.assignedPickColors = true;
 			this.objIndex = 0;
@@ -385,7 +409,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			graphics_state.projection_transform = ortho( -(viewSize+5), viewSize+5, -(viewSize+5)/(canvas.width/canvas.height), (viewSize+5)/(canvas.width/canvas.height), 0.1, 1000)
 			
-			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 100, -100, -100 ) ), scale( 100, 100, 100 ) ), emissiveLightBlue );	// janky background
+			shapes_in_use.strip.draw( graphics_state, mult( mult( mult( mult( model_transform, translation( 100, 7.5-100, -100 ) ), rotation( -45, 0, 1, 0 ) ), rotation( -35.264, 1, 0, 0 ) ), scale( 25.03, 25, 1 ) ), level2_background );	// background
+			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 200, -200, -200 ) ), scale( 100, 100, 100 ) ), emissiveLightBlue );	// janky background
+			
 			
 			shapes_in_use.cube.draw( graphics_state, scale(5,5,5), tan );
 			
@@ -403,15 +429,25 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			var model_transform_move = translation( 0, 6, 0 );
 			if (this.moved) this.pausable_time += graphics_state.animation_delta_time / 30;
 			
+			// for updating blockman cubes' positions
+			var model_transform_blockman_cube = translation( 0, 8, 0 );
+			var blockman_cube_angle = this.pausable_time % 360;
+			
 			model_transform_move = mult( model_transform_move, rotation( this.pausable_time, 0, 1, 0 ) );
 			
 			this.draw_rectangle( mult( model_transform_move, scale( 5, 1, 5 ) ), 1, vec3(0,1,0), pickFrame, pink );
 			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
 			this.draw_rectangle( model_transform_move, 4, vec3(0,0,-1), pickFrame );
+			
+			for (var i = 0; i < 4; i++)
+				this.blockman.updateBlock( 18+i, mult( model_transform_blockman_cube, translation( -2*i*Math.sin(blockman_cube_angle), 0, -2*i*Math.cos(blockman_cube_angle) ) ) );
+			
 			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
-			// model_transform_move = mult( model_transform_move, rotation( 0, 0, 1, 0 ) );
 			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,1,0), pickFrame );
 			this.draw_rectangle( model_transform_move, 4, vec3(1,0,0), pickFrame );
+			
+			for (var i = 0; i < 4; i++)
+				this.blockman.updateBlock( 28+i, mult( model_transform_blockman_cube, translation( 2*i*Math.cos(blockman_cube_angle), 0, -2*i*Math.sin(blockman_cube_angle) ) ) );
 			
 			// Fixed path
 			model_transform = translation( 0, 8, 8 );
@@ -454,7 +490,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 					earthquake_shake = .05;
 				else
 					earthquake_shake = 0;
-				if (this.anim_time > 95) this.anim_time = 95;
+				if (this.anim_time > 95) {
+					this.anim_time = 95;
+					model_transform_blockman_cube = mult( model_transform, translation( 0, 0, -2 ) );
+					for (var i = 0; i < 3; i++)
+						this.blockman.updateBlock( 43+i, mult( model_transform_blockman_cube, translation( 0, 0, -2*i ) ) );
+				}
 			}
 			
 			model_transform = mult( model_transform, rotation( this.anim_time > 5 ? -this.anim_time + 5 : 0, 1, 0, 0 ) );
