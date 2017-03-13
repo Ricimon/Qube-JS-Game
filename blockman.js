@@ -5,7 +5,7 @@ let isMoving = false;
 
 Declare_Any_Class( "Blockman",
 {
-    "construct": function(startingIndex, startingState) {
+    "construct": function(startingIndex, startingState, levelNumber) {
         this.define_data_members( 
             { 
                 blocks: [], //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform 
@@ -16,8 +16,21 @@ Declare_Any_Class( "Blockman",
                 moves: [], //stack of moves crafted from moveTo
                 curMoveMatrix: null,
                 HundredthsperDt: 1, //what change in percentage between 2 blocks per dt
-                lastPickFrame: null //store the last pick so it doesnt do anything unless its a new value to prevent insta moves after rotation
+                lastPickFrame: null, //store the last pick so it doesnt do anything unless its a new value to prevent insta moves after rotation
+                level: levelNumber
             } );   
+    },
+    "reset": function(startingIndex, startingState) { //basically reconstruction
+        isMoving = false;
+        this.blocks = []; 
+        this.curIndex = startingIndex;
+        this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+        this.curState = startingState;
+        this.states = {};
+        this.moves = []; 
+        this.curMoveMatrix = null;
+        this.HundredthsperDt = 1;
+        this.lastPickFrame = 0;
     },
     "addBlock": function( transform ) {
         this.blocks.push(transform);
@@ -103,7 +116,7 @@ Declare_Any_Class( "Blockman",
             }
         }
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
-        if( this.curIndex >= 15 )
+        if( this.curIndex >= 15  && this.level == 1)
             model_transform = mult( model_transform, translation(-15, 15, 15) );
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed

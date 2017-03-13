@@ -117,7 +117,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
         this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, anim_time: 0, padTriggered: false,
-									firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
+									firstFrame: true, blockman: new Blockman(9, "original", 1), cubeman_transform: mat4() } );
 		
 		global_picker = this.picker;	// experimental
 		
@@ -262,6 +262,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
       {	
         var graphics_state  = this.shared_scratchpad.graphics_state,
             model_transform = mat4();             // We have to reset model_transform every frame, so that as each begins, our basis starts as the identity.
+          
         shaders_in_use[ "Default" ].activate();
 
         // *** Lights: *** Values of vector or point lights over time.  Arguments to construct a Light(): position or vector (homogeneous coordinates), color, size
@@ -306,6 +307,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			shapes_in_use.strip.draw( graphics_state, scale(viewSize+1,viewSize+1,1), titleScreen );
 			break;
 		case 1:	// level 1
+            if ( this.firstFrame ){
+                this.blockman.reset(9, "original", 1);
+            }
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			
 			// Initial path
@@ -417,6 +421,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			break;
 		case 2:	// level 2
+            if ( this.firstFrame ){
+                this.blockman.reset(0, "original", 2);
+            }
 			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			graphics_state.projection_transform = ortho( -(viewSize+5), viewSize+5, -(viewSize+5)/(canvas.width/canvas.height), (viewSize+5)/(canvas.width/canvas.height), 0.1, 1000)
 			
@@ -566,7 +573,6 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
                 this.blockman.addState("rotated1",[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[41,40,39,21,20,19], [32], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotated2", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[32,21,20,19], [39,40,41], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotated3", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[21,20,19], [32], [39,40,41], [28,29,30,31,46, 47]]);
-                this.blockman.curIndex = 0;
                 this.firstFrame = false;
             }                
 			if (!pickFrame)
