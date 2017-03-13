@@ -144,6 +144,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+g", this, function() { this.shared_scratchpad.graphics_state.gouraud       ^= 1; } );   // Make the keyboard toggle some
         controls.add( "ALT+n", this, function() { this.shared_scratchpad.graphics_state.color_normals ^= 1; } );   // GPU flags on and off.
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
+		controls.add( "c"	 , this, function() { cameraRotatingBool								  ^= 1; } );
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
 		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
 		controls.add( "g"    , this, function() { if(currentScene == 2) this.padTriggered++;			    } );
@@ -188,6 +189,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		this.firstFrame = true;
 		this.padTriggered = 0;
 		this.anim_time = 0;
+		cameraRotating = 0;
+		cameraRotatingBool = false;
 		isMoving = false;
 	  },
 	'check_color_repeat': function( r, g, b )
@@ -311,7 +314,13 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 
         /**********************************
         Code for objects in world
-        **********************************/                                     
+        **********************************/   
+		// cool camera effects
+		if (cameraRotatingBool)
+			cameraRotating += t/200;
+		else
+			cameraRotating = 0;
+		
 		switch(currentScene)
 		{
 		case 0:	// title screen
@@ -321,7 +330,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if ( this.firstFrame ){
                 this.blockman.reset(9, "original", 1);
             }
-			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
+			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45 + cameraRotating, 0, 1, 0 ) ) );
 			
 			// Initial path
 			model_transform = this.draw_rectangle( model_transform, 3, vec3(-1,0,0), pickFrame );	var model_transform_decoration = model_transform;	// for later
@@ -438,7 +447,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if ( this.firstFrame ){
                 this.blockman.reset(0, "original", 2);
             }
-			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
+			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45 + cameraRotating, 0, 1, 0 ) ) );
 			graphics_state.projection_transform = ortho( -(viewSize+5), viewSize+5, -(viewSize+5)/(canvas.width/canvas.height), (viewSize+5)/(canvas.width/canvas.height), 0.1, 1000)
 			
 			shapes_in_use.strip.draw( graphics_state, mult( mult( mult( mult( model_transform, translation( 100, 7.5-100, -100 ) ), rotation( -45, 0, 1, 0 ) ), rotation( -35.264, 1, 0, 0 ) ), scale( 25.03, 25, 1 ) ), level2_background );	// background
