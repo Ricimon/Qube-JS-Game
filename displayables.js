@@ -546,6 +546,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				this.padTriggered++;
 			if (this.padTriggered > 0)
 			{
+				if (this.padTriggered == 1) {
+					this.blockman.earthquake();
+					this.padTriggered++;
+				}
 				this.anim_time += graphics_state.animation_delta_time / 50;
 				// earthquake effect
 				if (this.anim_time < 2)
