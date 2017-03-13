@@ -320,13 +320,15 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				this.blockman.changeState("original");
 			if (this.pausable_time < 0)	this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
 			
+			if (this.pausable_time == 90)
+			{
+				for (var i = 0; i < 5; i++)
+					this.blockman.updateBlock( 15+i, mult( model_transform_move, translation( -2*i, 0, 0 ) ) );
+			}
+			
 			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
 			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
 			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
-			for (var i = 0; i < 5; i++)
-			{
-				this.blockman.updateBlock( 15+i, mult(model_transform, translation( 0, i*-2, 0 ) ) );
-			}
 			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,0,-1), pickFrame );
 			
 			// End path
