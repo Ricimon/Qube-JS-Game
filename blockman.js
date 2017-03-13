@@ -1,6 +1,8 @@
 //expected input
 //Assumptions: Blocks are only ever connected to two other blocks
 
+let isMoving = false;
+
 Declare_Any_Class( "Blockman",
 {
     "construct": function(startingIndex, startingState) {
@@ -13,7 +15,8 @@ Declare_Any_Class( "Blockman",
                 states: {}, //will be dict containing whether they allow movement all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
                 moves: [], //stack of moves crafted from moveTo
                 curMoveMatrix: null,
-                HundredthsperDt: 1 //what change in percentage between 2 blocks per dt
+                HundredthsperDt: 1, //what change in percentage between 2 blocks per dt
+                lastPickFrame: null //store the last pick so it doesnt do anything unless its a new value to prevent insta moves after rotation
             } );   
     },
     "addBlock": function( transform ) {
@@ -22,10 +25,11 @@ Declare_Any_Class( "Blockman",
     "updateBlock": function( blockNumber, transform ){
         this.blocks[blockNumber] = transform;
     },
-    "moveTo": function(blockIndex){
-        //return if already moving there
-        if( blockIndex == this.moves[0] )
-            return
+    "moveTo": function(blockIndex){ //returns true if can move there and false if not
+        //return if already moving there or default value or same value as last frame
+        if( blockIndex == this.lastPickFrame || blockIndex == this.moves[0] || blockIndex == -1 )
+            return false
+        this.lastPickFrame = blockIndex;
         //clear the moves stack
 //        console.log("MoveTo Called");
         this.moves = [];
@@ -45,16 +49,17 @@ Declare_Any_Class( "Blockman",
                     else 
                         for ( let x = toConnectionIndex; x > fromConnectionIndex; x--) 
                             this.moves.push(connection[x]);
+                    return true;
                     //TMP
                     //this.curIndex = blockIndex;
                 }
                 else
                     console.log(blockIndex, " is unreachable from your current location");
-                return;
+                    return false;
             }
         }
         console.log(blockIndex, " is unreachable in general");
-        return;
+        return false;
     },
     "changeEveryElementOfMat": function(mat, ft){
         let newMat = mat.map( array => { //for every array
@@ -78,7 +83,6 @@ Declare_Any_Class( "Blockman",
         if( !this.states[this.curState].allowMovement )
             this.moves = [];
         
-        console.log(this.curIndex);
         let model_transform = this.blocks[this.curIndex];
         if ( this.moves.length ) { //if should move
             let destination = this.moves[this.moves.length-1]; //destination is Index to move to
@@ -99,6 +103,7 @@ Declare_Any_Class( "Blockman",
             }
         }
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
+        model_transfrom = mult( model_transform, translation(-10, 10, 10) );
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },
