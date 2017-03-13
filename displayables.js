@@ -317,11 +317,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 
 			// Allow rotation of movable path w.r.t. mouse dragging and picking
 			if ( this.mouse.anchor && this.mouse.from_center && global_picker.getPickLocation() == 34) 
-        this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
+				this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
 
-			// Allow rotation of movable path w.r.t. time
-			// if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
-			// if (!this.moved && this.pausable_time > 0) this.pausable_time -= graphics_state.animation_delta_time / 30;
+			// Automatically go to either position if close enough
+			if ( !this.mouse.anchor )
+			{
+				if (this.pausable_time > 85 && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 60;
+				if (this.pausable_time <  5 && this.pausable_time > 0) this.pausable_time -= graphics_state.animation_delta_time / 60;
+			}
 			if (this.pausable_time >= 90) {
 				this.pausable_time = 90;
 				this.blockman.changeState("rotated");
