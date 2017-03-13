@@ -135,8 +135,8 @@ Declare_Any_Class( "Blockman",
         this.curState = newState;
     },
     "earthquake": function( ){
-        for (state in states){ //for all states
-            state.connections = state.connections.map( array =>{ 
+        for (state in this.states){ //for all states
+            this.states[state].connections = this.states[state].connections.map( array =>{ 
                 if(array.indexOf(40) != -1){ //find the array with 40 in it and add the new blocks to it after 41
                     return array.concat([42,43,44,45]); //41 will always be at the end
                 }
@@ -144,11 +144,13 @@ Declare_Any_Class( "Blockman",
                     return array;
             });
         }
-        state["rotated1"].connections.map( array =>{
+        this.states["rotated1"].connections = this.states["rotated1"].connections.map( array =>{
             if( array.indexOf(30) != -1)
                 return [];
-            if ( array.indexOf(40) != -1)
+            else if ( array.indexOf(40) != -1)
                 return array.concat([31,30,29,28]);
+            else
+                return array;
         });
     }
 });
