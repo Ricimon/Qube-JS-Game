@@ -118,6 +118,9 @@ Declare_Any_Class( "Blockman",
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
         if( this.curIndex >= 15  && this.level == 1)
             model_transform = mult( model_transform, translation(-15, 15, 15) );
+        if( this.curIndex == 38 || this.curIndex == 39 || this.curIndex == 40 ){
+            model_transform = mult( model_transform, translation(-20, 20, 20) );
+        }
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },
@@ -131,10 +134,21 @@ Declare_Any_Class( "Blockman",
         this.curState = newState;
     },
     "earthquake": function( ){
-        for (state in states){
-            for (connection in states[state].connections)
-                ;
+        for (state in states){ //for all states
+            state.connections = state.connections.map( array =>{ 
+                if(array.indexOf(40) != -1){ //find the array with 40 in it and add the new blocks to it after 41
+                    return array.concat([42,43,44,45]); //41 will always be at the end
+                }
+                else
+                    return array;
+            });
         }
+        state["rotated1"].connections.map( array =>{
+            if( array.indexOf(30) != -1)
+                return [];
+            if ( array.indexOf(40) != -1)
+                return array.concat([31,30,29,28]);
+        });
     }
 });
                   
