@@ -312,12 +312,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = this.draw_rectangle( model_transform, 8, vec3(0,0,1), pickFrame );
 			model_transform = this.draw_rectangle( model_transform, 4, vec3(0,1,0), pickFrame );
 			
-			// Movable path
-			var movable_indices = [ 20, 21, 22, 23, 24, 25 ];										   
+			// Movable path									   
 			var model_transform_move = mult( translation( -6, 4*2+6, 6 ), model_transform );	// set up pivot point of movable path
 
 			// Allow rotation of movable path w.r.t. mouse dragging and picking
-			if ( this.mouse.anchor && this.mouse.from_center ) this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
+			if ( this.mouse.anchor && this.mouse.from_center && global_picker.getPickLocation() == 34) 
+        this.pausable_time += handle_mouse_dragging( this.mouse.anchor, this.mouse.from_center, 3, graphics_state.animation_delta_time );
 
 			// Allow rotation of movable path w.r.t. time
 			// if (this.moved && this.pausable_time < 90) this.pausable_time += graphics_state.animation_delta_time / 30;
