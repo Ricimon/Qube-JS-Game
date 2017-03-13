@@ -264,7 +264,6 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
       {	
         var graphics_state  = this.shared_scratchpad.graphics_state,
             model_transform = mat4();             // We have to reset model_transform every frame, so that as each begins, our basis starts as the identity.
-          
         shaders_in_use[ "Default" ].activate();
 
         // *** Lights: *** Values of vector or point lights over time.  Arguments to construct a Light(): position or vector (homogeneous coordinates), color, size
@@ -294,7 +293,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			darkGreen     	  = new Material( Color( 0.5    , 1      , 0.5    , 1 ), .15, .9,  0, 70 ),
 			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .7,  0, 40 ),
 			darkTan			  = new Material( Color( 180/255, 150/255, 110/255, 1 ), 1,   .7,  0, 40 ),
-			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), 1,   .5,  0, 40 ),
+			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), .9,   .5,  0, 40 ),
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
 			level2_background = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "level2_background.png"),
@@ -310,7 +309,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			shapes_in_use.strip.draw( graphics_state, scale(viewSize+1,viewSize+1,1), titleScreen );
 			break;
 		case 1:	// level 1
-            if ( this.firstFrame ){
+			if ( this.firstFrame ){
                 this.blockman.reset(9, "original", 1);
             }
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
@@ -424,7 +423,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			break;
 		case 2:	// level 2
-            if ( this.firstFrame ){
+			if ( this.firstFrame ){
                 this.blockman.reset(0, "original", 2);
             }
 			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
@@ -568,7 +567,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration2, translation(-(1-.1),0,-(1-.1)) ), scale(.1,5,.1) ), tan );
 			}
 			
-            //Blockman
+			//Blockman
             if (this.firstFrame){
                 //record the possible states and the indexes that are connected to each other
                 this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
