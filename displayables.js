@@ -571,7 +571,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             if (this.firstFrame){
                 //record the possible states and the indexes that are connected to each other
                 this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
-                this.blockman.addState("rotating", [], false);
+                this.blockman.addState("rotating", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], [21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotated1",[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[41,40,39,21,20,19], [32], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotated2", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[32,21,20,19], [39,40,41], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotated3", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[21,20,19], [32], [39,40,41], [28,29,30,31,46, 47]]);
