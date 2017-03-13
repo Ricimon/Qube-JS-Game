@@ -116,11 +116,12 @@ Declare_Any_Class( "Blockman",
             }
         }
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
-        if( this.curIndex >= 15  && this.level == 1)
+        if( this.curIndex >= 15  && currentScene == 1)
             model_transform = mult( model_transform, translation(-15, 15, 15) );
-        if( this.curIndex == 38 || this.curIndex == 39 || this.curIndex == 40 ){
-            model_transform = mult( model_transform, translation(-20, 20, 20) );
-        }
+		if (currentScene == 2)
+			if( this.curIndex == 38 || this.curIndex == 39 || this.curIndex == 40 ){
+				model_transform = mult( model_transform, translation(-20, 20, 20) );
+			}
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },
