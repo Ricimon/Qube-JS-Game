@@ -161,7 +161,8 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         canvas.addEventListener( "mouseup",   ( function(self) { return function(e) { e = e || window.event;    self.mouse.anchor = undefined;              } } ) (this), false );
         canvas.addEventListener( "mousedown", ( function(self) { return function(e) { e = e || window.event;   
 		self.mouse.anchor = mouse_position( e );										  
-		if (currentScene == 0) currentScene = 1;
+		if (currentScene == 0) currentScene++;
+		if (currentScene > 2) { currentScene = 0; isMoving = false; }
           var canvasCoords = global_picker.getCanvasCoords( e );      // get the canvas coords from mouse click with origin set to canvas bottom left
           var blockman_loc = -1;
           if ( !isMoving )
@@ -185,6 +186,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		this.moved = false; 
 		this.pausable_time = 0; 
 		this.firstFrame = true;
+		isMoving = false;
 	  },
 	'check_color_repeat': function( r, g, b )
 	  {
@@ -295,6 +297,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
 			level2_background = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "level2_background.png"),
+			endScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "end_screen.png"),
             placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  0,  0, 40 );
 
         /**********************************
@@ -560,6 +563,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			this.assignedPickColors = true;
 			this.objIndex = 0;
+			break;
+		default: 	// game end
+			graphics_state.camera_transform = translation(0,0,-25);
+			graphics_state.projection_transform = ortho( -viewSize, viewSize, -viewSize/(canvas.width/canvas.height), viewSize/(canvas.width/canvas.height), 0.1, 1000);
+			
+			shapes_in_use.strip.draw( graphics_state, scale(viewSize+1,viewSize+1,1), endScreen );
 			break;
 		}
       }
