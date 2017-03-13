@@ -27,7 +27,7 @@ Declare_Any_Class( "Blockman",
         if( blockIndex == this.moves[0] )
             return
         //clear the moves stack
-        console.log("MoveTo Called");
+//        console.log("MoveTo Called");
         this.moves = [];
         //find the blockIndex in one of the connection arrays of the current State
         let fromConnectionIndex = null;
@@ -65,6 +65,15 @@ Declare_Any_Class( "Blockman",
         newMat = newMat[0].concat(newMat[1]).concat(newMat[2]).concat(newMat[3]); //combine all arrays in single d for proper entry into mat4()
         return mat4(newMat); //turn new multiD array in a matrix
     },
+    "equal": function(mat1, mat2){ //my equal function that rounds to the nearest hundreths then calls equal to avoid weird floating issues
+        mat1 = this.changeEveryElementOfMat(mat1, ele =>{
+           return Math.round(ele*10) /10; 
+        });
+        mat2 = this.changeEveryElementOfMat(mat2, ele =>{
+           return Math.round(ele*10) /10; 
+        });
+        return equal(mat1, mat2);
+    },
     "where": function(dt){
         if( !this.states[this.curState].allowMovement )
             this.moves = [];
@@ -81,12 +90,12 @@ Declare_Any_Class( "Blockman",
             }
             this.curMatrixOffset = add( this.curMatrixOffset, this.curMoveMatrix ); //store the continuous offset in curMatrixOffset
             model_transform = add( model_transform, this.curMatrixOffset );
-            if ( equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
+            if ( this.equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
                 this.curIndex = destination;
                 this.curMoveMatrix = null;
                 this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
-                if ( this.moves.length > 1 ) //so it doesnt spam moveTo by trying to move to a space it is already at
-                    this.moves.pop();
+//                if ( this.moves.length > 1 ) //so it doesnt spam moveTo by trying to move to a space it is already at
+                this.moves.pop();
             }
         }
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
