@@ -12,7 +12,8 @@ Declare_Any_Class( "Blockman",
                 curState: startingState,
                 states: {}, //will be dict containing whether they allow movement all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
                 moves: [], //stack of moves crafted from moveTo
-                curMoveMatrix: null
+                curMoveMatrix: null,
+                HundredthsperDt: 1 //what change in percentage between 2 blocks per dt
             } );   
     },
     "addBlock": function( transform ) {
@@ -26,7 +27,7 @@ Declare_Any_Class( "Blockman",
         if( blockIndex == this.moves[0] )
             return
         //clear the moves stack
-        console.log("MoveTo Called");
+//        console.log("MoveTo Called");
         this.moves = [];
         //find the blockIndex in one of the connection arrays of the current State
         let fromConnectionIndex = null;
@@ -40,10 +41,10 @@ Declare_Any_Class( "Blockman",
                 if( fromConnectionIndex != -1){ //if this connection also has curBlock
                     if( toConnectionIndex < fromConnectionIndex ) //push all indices between the two indicies 
                         for ( let x = toConnectionIndex; x <= fromConnectionIndex; x++)
-                            this.moves.push(x);
+                            this.moves.push(connection[x]);
                     else 
                         for ( let x = toConnectionIndex; x > fromConnectionIndex; x--) 
-                            this.moves.push(x);
+                            this.moves.push(connection[x]);
                     //TMP
                     //this.curIndex = blockIndex;
                 }
@@ -55,33 +56,49 @@ Declare_Any_Class( "Blockman",
         console.log(blockIndex, " is unreachable in general");
         return;
     },
-    "where": function(){
+    "changeEveryElementOfMat": function(mat, ft){
+        let newMat = mat.map( array => { //for every array
+                    return array.map( ele => { //for every element in that array
+                       return Math.round(ft(ele)*100) / 100; //call the ft on it and round to the nearest hundreth
+                    });
+                } );
+        newMat = newMat[0].concat(newMat[1]).concat(newMat[2]).concat(newMat[3]); //combine all arrays in single d for proper entry into mat4()
+        return mat4(newMat); //turn new multiD array in a matrix
+    },
+    "equal": function(mat1, mat2){ //my equal function that rounds to the nearest hundreths then calls equal to avoid weird floating issues
+        mat1 = this.changeEveryElementOfMat(mat1, ele =>{
+           return Math.round(ele*10) /10; 
+        });
+        mat2 = this.changeEveryElementOfMat(mat2, ele =>{
+           return Math.round(ele*10) /10; 
+        });
+        return equal(mat1, mat2);
+    },
+    "where": function(dt){
         if( !this.states[this.curState].allowMovement )
             this.moves = [];
         
+        console.log(this.curIndex);
         let model_transform = this.blocks[this.curIndex];
-        model_transform = mult( model_transform, translation(0, 1.5, 0) );
         if ( this.moves.length ) { //if should move
             let destination = this.moves[this.moves.length-1]; //destination is Index to move to
             if ( this.curMoveMatrix == null ) {
-                let difference = subtract(this.blocks[this.curIndex], this.blocks[destination]);
-                difference.map( ele => {
-                    if(ele)
-                        return ele/10; //SPEED: do a speedth of the difference every frame
-                    else
-                        return ele;
-                } );
-                this.curMoveMatrix = difference;
+                let difference = subtract(this.blocks[destination], this.blocks[this.curIndex]);
+                this.curMoveMatrix = this.changeEveryElementOfMat(difference, ele => {
+                    return ele/20.0;
+                }); 
             }
             this.curMatrixOffset = add( this.curMatrixOffset, this.curMoveMatrix ); //store the continuous offset in curMatrixOffset
             model_transform = add( model_transform, this.curMatrixOffset );
-            if ( equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
+            if ( this.equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
                 this.curIndex = destination;
                 this.curMoveMatrix = null;
-                this.curMatrixOffset = mat4([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]); 
+                this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+//                if ( this.moves.length > 1 ) //so it doesnt spam moveTo by trying to move to a space it is already at
                 this.moves.pop();
             }
         }
+        model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },

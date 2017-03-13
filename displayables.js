@@ -283,13 +283,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			lightBlue	      = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), .15, .7,  0, 10 ),	 // Ambience intensity is all the same because they really should be all the same. None of the planets should be generating light.
 			brownOrange       = new Material( Color( 0.6    , 0.251  , 0.137  , 1 ), .15, .7, .3, 90 ),
 			lightRed      	  = new Material( Color( 1	    , 0.5    , 0.5    , 1 ), .15, .9,  0, 70 ),
+			lighterRed        = new Material( Color( 1	    , 0.5    , 0.5    , 1 ), .6, .9,  0, 70 ),
 			darkGreen     	  = new Material( Color( 0.5    , 1      , 0.5    , 1 ), .15, .9,  0, 70 ),
 			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .7,  0, 40 ),
 			darkTan			  = new Material( Color( 180/255, 150/255, 110/255, 1 ), 1,   .7,  0, 40 ),
 			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), 1,   .5,  0, 40 ),
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
-            placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  0 ,  0,  0, 0, "Blank" );
+            placeHolder 	  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  0,  0, 40 );
 
         /**********************************
         Code for objects in world
@@ -325,6 +326,12 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				this.blockman.changeState("original");
 			if (this.pausable_time < 0)	this.pausable_time = 0;	// Make sure pausable_time doesn't go beyond 0 or 90
 			
+			if (this.pausable_time == 90)
+			{
+				for (var i = 0; i < 5; i++)
+					this.blockman.updateBlock( 15+i, mult( model_transform_move, translation( -2*i, 0, 0 ) ) );
+			}
+			
 			var fracTranslated = 1 / ( 1 + Math.exp(-this.pausable_time/90*6 + 3) );	// sigmoid function to prevent clipping during translation, but maintain a smooth transition of lighting colors
 			model_transform_move = mult( translation( fracTranslated*30, fracTranslated*-30, fracTranslated*-30 ), mult( model_transform_move, rotation( this.pausable_time, 0, 0, -1 ) ) );	// Translate/rotate to make visual illusion work
 			this.draw_rectangle( model_transform_move, 5, vec3(0,-1,0), pickFrame );
@@ -357,9 +364,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
             if (this.firstFrame){
                 //record the two possible states and the indexes that are connected to each other
                 //20 is weird since its in block 15
-                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10], [15,20,21,22,23,24,25,26,27,28,29,30,31,32,33]]);
+                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10], [15,21,22,23,24,25,26,27,28,29,30,31,32,33]]);
                 this.blockman.addState("rotating", [], false);
-                this.blockman.addState("rotated", [[0,1,2,3,4,5,6,7,8,9,10,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]]);                    
+                this.blockman.addState("rotated", [[10,9,8,7,6,5,4,3,2,1,0,19,18,17,16,15,21,22,23,24,25,26,27,28,29,30,31,32,33]]);                    
                 this.firstFrame = false;
                 if (this.blockman.moves.length)
                     console.log(this.blockman.moves);
@@ -369,7 +376,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
                 //model_transform = translation( -6, 1.4, 8 );
 				// console.log( this.blockman_loc );
                 this.blockman.moveTo( global_picker.getPickLocation() );
-                model_transform = this.blockman.where();
+                model_transform = this.blockman.where( graphics_state.animation_delta_time );
                 model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
                 shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
 			}
@@ -390,6 +397,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = mult( model_transform, translation( 0, 0.8, -14 ) );
 			model_transform = this.draw_rectangle( model_transform, 5, vec3(0,1,0), pickFrame );
 			model_transform = this.draw_rectangle( model_transform, 4, vec3(1,-.2,0), pickFrame );
+			var model_transform_decoration = model_transform;	// for later
 			
 			// Movable path
 			var model_transform_move = translation( 0, 6, 0 );
@@ -416,10 +424,15 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform = this.draw_rectangle( model_transform, 1, vec3(1,0,0), pickFrame, tan );
 			var moveMag = 14;
 			model_transform = mult( model_transform, translation( -moveMag, moveMag, moveMag ) );
-			shapes_in_use.strip.draw( graphics_state, mult( model_transform, translation( 0, 0, 1 ) ), tan );
-			shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 0, 1, 0 ) ), rotation( -90, 1, 0, 0 ) ), tan );
-			model_transform = mult( model_transform, translation( 2, 0, 0 ) );
-			model_transform = this.draw_rectangle( model_transform, 2, vec3(1,0,0), pickFrame, tan );
+			if (!pickFrame)
+			{
+				shapes_in_use.strip.draw( graphics_state, mult( model_transform, translation( 0, 0, 1 ) ), tan );
+				shapes_in_use.strip.draw( graphics_state, mult( mult( model_transform, translation( 0, 1, 0 ) ), rotation( -90, 1, 0, 0 ) ), tan );
+			}
+			// model_transform = mult( model_transform, translation( 2, 0, 0 ) );
+			model_transform = this.draw_rectangle( model_transform, 1, vec3(1,0,0), pickFrame, placeHolder );
+			model_transform = this.draw_rectangle( model_transform, 2, vec3(1,0,0), pickFrame );
+			var model_transform_decoration2 = model_transform;	// for later
 			
 			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
 			
@@ -446,9 +459,26 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			model_transform = mult( model_transform, rotation( this.anim_time > 5 ? -this.anim_time + 5 : 0, 1, 0, 0 ) );
 			model_transform = mult( model_transform, translation( 0, 2, 0 ) );
-			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,1,0), pickFrame, tan );
+			model_transform = this.draw_rectangle( model_transform, 3, vec3(0,1,0), pickFrame );
 			
+			model_transform = translation( 0, 22, -8 );
+			model_transform = this.draw_rectangle( model_transform, 2, vec3(0,0,-1), pickFrame);
 			
+			// Decorations
+			if (!pickFrame) {
+				model_transform = mult( translation( 0, 1, 2 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
+				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), lighterRed );
+				
+				model_transform_decoration = mult( model_transform_decoration, translation( -2, 7, 0 ) );
+				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration, translation(1-.1,0,1-.1) ), scale(.1,7,.1) ), tan );
+				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration, translation(-(1-.1),0,1-.1) ), scale(.1,7,.1) ), tan );
+				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration, translation(-(1-.1),0,-(1-.1)) ), scale(.1,7,.1) ), tan );
+				
+				model_transform_decoration2 = mult (model_transform_decoration2, translation( -2, -5, 0 ) );
+				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration2, translation(1-.1,0,1-.1) ), scale(.1,5,.1) ), tan );
+				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration2, translation(-(1-.1),0,1-.1) ), scale(.1,5,.1) ), tan );
+				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration2, translation(-(1-.1),0,-(1-.1)) ), scale(.1,5,.1) ), tan );
+			}
 			
 			this.assignedPickColors = true;
 			this.objIndex = 0;
