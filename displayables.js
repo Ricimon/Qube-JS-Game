@@ -427,7 +427,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			// Advancing scene
 			if (this.blockman.curIndex == 33)
+			{
+				level_transition.play();
 				this.advance_scene();
+			}
 			
 			break;
 		case 2:	// level 2
@@ -506,6 +509,20 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			model_transform_move = mult( model_transform_move, rotation( this.pausable_time, 0, 1, 0 ) );
 			
 			this.draw_rectangle( mult( model_transform_move, scale( 5, 1, 5 ) ), 1, vec3(0,1,0), pickFrame, pink );
+			if (!pickFrame)
+			{
+				var holes_transform = model_transform_move;
+				for (var i = 0; i < 4; i++)
+				{
+					var temp_holes_transform = mult( holes_transform, translation( 3.9, 0, 5 ) );
+					for (var j = 0; j < 4; j++)
+					{
+						shapes_in_use.cylinder.draw( graphics_state, mult( temp_holes_transform, scale(.5,.5,.5 ) ), brownOrange );
+						temp_holes_transform = mult( temp_holes_transform, translation( -2.6, 0 , 0 ) );
+					}
+					holes_transform = mult( holes_transform, rotation( 90, 0, 1, 0 ) );
+				}
+			}
 			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
 			this.draw_rectangle( model_transform_move, 4, vec3(0,0,-1), pickFrame );
 			
@@ -547,6 +564,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			if (this.padTriggered > 0)
 			{
 				if (this.padTriggered == 1) {
+					rumble.play();
 					this.blockman.earthquake();
 					this.padTriggered++;
 				}
@@ -600,7 +618,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			//Blockman
             if (this.firstFrame){
                 //record the possible states and the indexes that are connected to each other
-                //41 must be a the end for earthquake to work
+				//41 must be a the end for earthquake to work
                 this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotating", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], [21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
                 this.blockman.addState("rotated1",[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], [19,20,21,39,40,41], [32], [28,29,30,31], [46, 47]]);
@@ -622,7 +640,10 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.objIndex = 0;
 			
 			if (this.blockman.curIndex == 47)
+			{
+				level_transition.play();
 				this.advance_scene();
+			}
 			
 			break;
 		default: 	// game end
