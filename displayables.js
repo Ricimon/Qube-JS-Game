@@ -116,8 +116,8 @@ var global_picker;  // experimental
 Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
-        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, anim_time: 0, padTriggered: false,
-									firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
+        this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, anim_time: 0, padTriggered: 0,
+									firstFrame: true, blockman: new Blockman(9, "original", 1), cubeman_transform: mat4() } );
 		
 		global_picker = this.picker;	// experimental
 		
@@ -146,7 +146,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
         controls.add( "ALT+a", this, function() { this.shared_scratchpad.animate                      ^= 1; } );
 		controls.add( "r"    , this, function() { this.moved					                      ^= 1; } );
 		controls.add( "p"    , this, function() { seePickingColors				                      ^= 1; } );
-		controls.add( "g"    , this, function() { if(currentScene == 2) this.padTriggered	        = true; } );
+		controls.add( "g"    , this, function() { if(currentScene == 2) this.padTriggered++;			    } );
 		controls.add( "n"    , this, function() { this.advance_scene()										} );	// advance scene
         
         controls.add( "i",     this, function() { this.cubeman_transform = mult( this.cubeman_transform, translation(.1,0,0) )} );
@@ -186,6 +186,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		this.moved = false; 
 		this.pausable_time = 0; 
 		this.firstFrame = true;
+		this.padTriggered = 0;
 		isMoving = false;
 	  },
 	'check_color_repeat': function( r, g, b )
@@ -252,7 +253,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				}
 			
             if( this.firstFrame ) { //only during the first frame so List has one of each value
-                this.blockman.addBlock(model_transform);
+				if (arguments[5] != null)
+				{
+					var temp_model_transform = mult( model_transform, scale( 1/arguments[5][0], 1/arguments[5][1], 1/arguments[5][2] ) );
+					temp_model_transform = mult( temp_model_transform, translation(0,-(1-arguments[5][1]), 0) );
+					this.blockman.addBlock(temp_model_transform);
+				}
+				else
+					this.blockman.addBlock(model_transform);
             }
             
 			model_transform = mult( model_transform, translation( rectDirection[0] * 2, rectDirection[1] * 2, rectDirection[2] * 2 ) );
@@ -293,7 +301,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			darkGreen     	  = new Material( Color( 0.5    , 1      , 0.5    , 1 ), .15, .9,  0, 70 ),
 			tan				  = new Material( Color( 210/255, 180/255, 140/255, 1 ), 1,   .7,  0, 40 ),
 			darkTan			  = new Material( Color( 180/255, 150/255, 110/255, 1 ), 1,   .7,  0, 40 ),
-			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), 1,   .5,  0, 40 ),
+			pink			  = new Material( Color( 255/255, 192/255, 203/255, 1 ), .95,   .5,  0, 40 ),
 			emissiveLightBlue = new Material( Color( 0.678  , 0.847  , 0.902  , 1 ), 1,    0,  0, 10 ),
 			titleScreen		  = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "title_screen.png"),
 			level2_background = new Material( Color( 0    , 0    , 0    , 0 ),  1 ,  1,  1, 40, "level2_background.png"),
@@ -309,6 +317,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			shapes_in_use.strip.draw( graphics_state, scale(viewSize+1,viewSize+1,1), titleScreen );
 			break;
 		case 1:	// level 1
+			if ( this.firstFrame ){
+                this.blockman.reset(9, "original", 1);
+            }
 			graphics_state.camera_transform = mult( translation(0, -2, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			
 			// Initial path
@@ -420,6 +431,9 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			break;
 		case 2:	// level 2
+			if ( this.firstFrame ){
+                this.blockman.reset(0, "original", 2);
+            }
 			graphics_state.camera_transform = mult( translation(earthquake_shake, -6, -100), mult( rotation( 35.264, 1, 0, 0 ), rotation( 45, 0, 1, 0 ) ) );
 			graphics_state.projection_transform = ortho( -(viewSize+5), viewSize+5, -(viewSize+5)/(canvas.width/canvas.height), (viewSize+5)/(canvas.width/canvas.height), 0.1, 1000)
 			
@@ -431,16 +445,18 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			// Initial path
 			model_transform = translation( -4, -1.6, 6 );
-			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 1, vec3(-1,0,0), pickFrame );
+			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 1, vec3(-1,0,0), pickFrame, null, vec3(1,0.2,1) );
 			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
-			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 7, vec3(0,0,-1), pickFrame );
+			this.draw_rectangle( mult( model_transform, scale( 1, 0.2, 1 ) ), 7, vec3(0,0,-1), pickFrame, null, vec3(1,0.2,1) );
 			model_transform = mult( model_transform, translation( 0, 0.8, -14 ) );
 			if (!pickFrame)
 				for (var i = 0; i < 6; i++)
 				{
 					shapes_in_use.ladder.draw( graphics_state, mult( mult( model_transform, translation(0, 2*i, 1 ) ), scale( 1, 2, 1 ) ), brownOrange );
 				}
-			model_transform = this.draw_rectangle( model_transform, 5, vec3(0,1,0), pickFrame );
+			model_transform = mult( model_transform, rotation( 90, 1, 0, 0 ) );
+			model_transform = this.draw_rectangle( model_transform, 5, vec3(0,0,-1), pickFrame );
+			model_transform = mult( model_transform, rotation( -90, 1, 0, 0 ) );
 			model_transform = this.draw_rectangle( model_transform, 4, vec3(1,-.2,0), pickFrame );
 			var model_transform_decoration = model_transform;	// for later
 			
@@ -469,6 +485,20 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				
 			}
 			
+			switch(this.pausable_time)
+			{
+			case 0:
+				this.blockman.changeState("original"); break;
+			case 90:
+				this.blockman.changeState("rotated3"); break;
+			case 180:
+				this.blockman.changeState("rotated2"); break;
+			case 270:
+				this.blockman.changeState("rotated1"); break;
+			default:
+				this.blockman.changeState("rotating"); break;
+			}
+			
 			// for updating blockman cubes' positions
 			var model_transform_blockman_cube = translation( 0, 8, 0 );
 			var blockman_cube_angle = this.pausable_time % 360;
@@ -480,7 +510,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.draw_rectangle( model_transform_move, 4, vec3(0,0,-1), pickFrame );
 			
 			for (var i = 0; i < 4; i++)
-				this.blockman.updateBlock( 18+i, mult( model_transform_blockman_cube, translation( -2*i*Math.sin(blockman_cube_angle), 0, -2*i*Math.cos(blockman_cube_angle) ) ) );
+				this.blockman.updateBlock( 18+i, mult( model_transform_move, translation(0,0,-2*i) ) );
 			
 			model_transform_move = mult( model_transform_move, translation( 0, 2, 0 ) );
 			model_transform_move = this.draw_rectangle( model_transform_move, 6, vec3(0,1,0), pickFrame );
@@ -491,7 +521,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			// Fixed path
 			model_transform = translation( 0, 8, 8 );
-			this.draw_rectangle( model_transform, 7, vec3(0,-1,0), pickFrame, darkTan );
+			this.draw_rectangle( mult( model_transform, rotation(180, 0, 1, 0 ) ), 7, vec3(0,-1,0), pickFrame, darkTan );
 			model_transform = mult( translation( 0, 1, 0 ), mult( model_transform, rotation( 90, 1, 0, 0 ) ) );
 			if (!pickFrame)
 				shapes_in_use.cylinder.draw( graphics_state, mult( model_transform, scale( .75, .75, .01 ) ), darkGreen );
@@ -512,8 +542,14 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			
 			model_transform = mult( model_transform, translation( -2, 0, 0 ) );
 			
-			if (this.padTriggered)
+			if (this.blockman.curIndex == 32)
+				this.padTriggered++;
+			if (this.padTriggered > 0)
 			{
+				if (this.padTriggered == 1) {
+					this.blockman.earthquake();
+					this.padTriggered++;
+				}
 				this.anim_time += graphics_state.animation_delta_time / 50;
 				// earthquake effect
 				if (this.anim_time < 2)
@@ -561,8 +597,32 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 				shapes_in_use.cube.draw( graphics_state, mult( mult( model_transform_decoration2, translation(-(1-.1),0,-(1-.1)) ), scale(.1,5,.1) ), tan );
 			}
 			
+			//Blockman
+            if (this.firstFrame){
+                //record the possible states and the indexes that are connected to each other
+                this.blockman.addState("original", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,21,20,19], [32], [39,40,41], [28,29,30,31], [46, 47]]);
+                this.blockman.addState("rotating", [], false);
+                this.blockman.addState("rotated1",[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[41,40,39,21,20,19], [32], [28,29,30,31], [46, 47]]);
+                this.blockman.addState("rotated2", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[32,21,20,19], [39,40,41], [28,29,30,31], [46, 47]]);
+                this.blockman.addState("rotated3", [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[21,20,19], [32], [39,40,41], [28,29,30,31,46, 47]]);
+                this.firstFrame = false;
+            }                
+			if (!pickFrame)
+			{
+                //model_transform = translation( -6, 1.4, 8 );
+				// console.log( this.blockman_loc );
+                this.blockman.moveTo( global_picker.getPickLocation() )
+                isMoving = ( this.blockman.moves.length > 0 );
+                model_transform = this.blockman.where( graphics_state.animation_delta_time );
+                model_transform = mult( model_transform, this.cubeman_transform ); //give offset from keyboard for testing 
+                shapes_in_use.cube.draw( graphics_state, mult( model_transform, scale( 0.4, 0.4, 0.4 ) ), emissiveRed );
+			}
 			this.assignedPickColors = true;
 			this.objIndex = 0;
+			
+			if (this.blockman.curIndex == 47)
+				this.advance_scene();
+			
 			break;
 		default: 	// game end
 			graphics_state.camera_transform = translation(0,0,-25);
