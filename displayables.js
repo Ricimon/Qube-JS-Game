@@ -187,6 +187,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 		this.pausable_time = 0; 
 		this.firstFrame = true;
 		this.padTriggered = 0;
+		this.anim_time = 0;
 		isMoving = false;
 	  },
 	'check_color_repeat': function( r, g, b )
@@ -534,7 +535,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
 			this.draw_rectangle( model_transform_move, 4, vec3(1,0,0), pickFrame );
 			
 			for (var i = 0; i < 4; i++)
-				this.blockman.updateBlock( 28+i, mult( model_transform_blockman_cube, translation( 2*i*Math.cos(blockman_cube_angle), 0, -2*i*Math.sin(blockman_cube_angle) ) ) );
+				this.blockman.updateBlock( 28+i, mult( model_transform_move, translation(2*i,0,0) ) );
 			
 			// Fixed path
 			model_transform = translation( 0, 8, 8 );

@@ -4,7 +4,7 @@
 var shapes_in_use = [], shaders_in_use = [], textures_in_use = [], active_shader, texture_filenames_to_load = [], gl, g_addrs;    // ****** GLOBAL VARIABLES *******
 var shapes_in_scene = [];
 var backR = 39/255, backG = 46/255, backB = 54/255;
-var viewSize = 20, currentScene = 0, seePickingColors = false, earthquake_shake = 0;
+var viewSize = 20, currentScene = 0, seePickingColors = false, earthquake_shake = 0, cameraRotating = 0;
 var rumble = new Audio('Earth Rumble Sound Effect.mp3'), level_transition = new Audio('level_transition.mp3');
 
 function Declare_Any_Class( name, methods, superclass = Object, scope = window )              // Making javascript behave more like Object Oriented C++
