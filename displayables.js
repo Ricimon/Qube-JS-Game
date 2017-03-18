@@ -117,7 +117,7 @@ Declare_Any_Class( "Game_Scene",  // Displayable object that our class Canvas_Ma
   { 'construct': function( context )
       { this.shared_scratchpad = context.shared_scratchpad;
         this.define_data_members( { picker: new Picker( canvas ), assignedPickColors: false, objIndex: 0, moved: false, pausable_time: 0, anim_time: 0, padTriggered: 0,
-									firstFrame: true, blockman: new Blockman(9, "original", 1), cubeman_transform: mat4() } );
+									firstFrame: true, blockman: new Blockman(9, "original"), cubeman_transform: mat4() } );
 		
 		global_picker = this.picker;	// experimental
 		

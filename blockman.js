@@ -5,7 +5,7 @@ let isMoving = false;
 
 Declare_Any_Class( "Blockman",
 {
-    "construct": function(startingIndex, startingState, levelNumber) {
+    "construct": function(startingIndex, startingState) {
         this.define_data_members( 
             { 
                 blocks: [], //will be added through addBlock, seperate add function for ez calling when you have the appropriate model_transform 
@@ -15,9 +15,10 @@ Declare_Any_Class( "Blockman",
                 states: {}, //will be dict containing whether they allow movement all scenes of arrays which contain all connected parts of that scene in arrays of indexes into this.blocks 
                 moves: [], //stack of moves crafted from moveTo
                 curMoveMatrix: null,
-                HundredthsperDt: 1, //what change in percentage between 2 blocks per dt
-                lastPickFrame: null, //store the last pick so it doesnt do anything unless its a new value to prevent insta moves after rotation
-                level: levelNumber
+                framesPerBlockChange: 20, //how many frames should it take to get between one block and the next, can be changed dynamically with dt
+                framesMovedOnCurrentBlock: 1,
+                blockChangePerSecond: 1, //used to go from dt to frames Per block change when calling moveTo/where for the first time
+                lastPickFrame: -1 //store the last pick so it doesnt do anything unless its a new value to prevent insta moves after rotation
             } );   
     },
     "reset": function(startingIndex, startingState) { //basically reconstruction
@@ -30,7 +31,7 @@ Declare_Any_Class( "Blockman",
         this.moves = []; 
         this.curMoveMatrix = null;
         this.HundredthsperDt = 1;
-        this.lastPickFrame = 0;
+        this.lastPickFrame = -1;
     },
     "addBlock": function( transform ) {
         this.blocks.push(transform);
@@ -83,7 +84,7 @@ Declare_Any_Class( "Blockman",
         newMat = newMat[0].concat(newMat[1]).concat(newMat[2]).concat(newMat[3]); //combine all arrays in single d for proper entry into mat4()
         return mat4(newMat); //turn new multiD array in a matrix
     },
-    "equal": function(mat1, mat2){ //my equal function that rounds to the nearest hundreths then calls equal to avoid weird floating issues
+    "equal": function(mat1, mat2){ //my equal function, DEPRECATED(floating pt issues persisted)
         mat1 = this.changeEveryElementOfMat(mat1, ele =>{
            return Math.round(ele*10) /10; 
         });
@@ -102,12 +103,14 @@ Declare_Any_Class( "Blockman",
             if ( this.curMoveMatrix == null ) {
                 let difference = subtract(this.blocks[destination], this.blocks[this.curIndex]);
                 this.curMoveMatrix = this.changeEveryElementOfMat(difference, ele => {
-                    return ele/20.0;
+                    return ele/this.framesPerBlockChange;
                 }); 
             }
+            this.framesMovedOnCurrentBlock++;
             this.curMatrixOffset = add( this.curMatrixOffset, this.curMoveMatrix ); //store the continuous offset in curMatrixOffset
             model_transform = add( model_transform, this.curMatrixOffset );
-            if ( this.equal( model_transform, this.blocks[destination] ) ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
+            if ( this.framesMovedOnCurrentBlock == this.framesPerBlockChange ){ //if you reached your destination, reset all the movement matrixes and remove destination for moves stack
+                this.framesMovedOnCurrentBlock = 1;
                 this.curIndex = destination;
                 this.curMoveMatrix = null;
                 this.curMatrixOffset = mat4([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
@@ -118,10 +121,10 @@ Declare_Any_Class( "Blockman",
         model_transform = mult( model_transform, translation(0, 1.5, 0) ); //move above block
         if( this.curIndex >= 15  && currentScene == 1)
             model_transform = mult( model_transform, translation(-15, 15, 15) );
-		if (currentScene == 2)
-			if( this.curIndex == 38 || this.curIndex == 39 || this.curIndex == 40 ){
-				model_transform = mult( model_transform, translation(-20, 20, 20) );
-			}
+//		if (currentScene == 2)
+//			if( this.curIndex == 38 || this.curIndex == 39 || this.curIndex == 40 ){
+//				model_transform = mult( model_transform, translation(-20, 20, 20) );
+//			}
         return model_transform;
         //move if move stack isnt empty popping movements as they are completed
     },
